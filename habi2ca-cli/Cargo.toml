@@ -1,0 +1,7 @@
+[package]
+name = "habi2ca-cli"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+habi2ca-common = { version = "0.0.0", path = "../habi2ca-common" }
