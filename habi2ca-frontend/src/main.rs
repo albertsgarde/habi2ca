@@ -1,76 +1,97 @@
 use habi2ca_common::player::Player;
 use iced::{
-    widget::{button, column, row, text},
-    Sandbox,
+    executor,
+    futures::FutureExt,
+    widget::{button, column, row, text, Text},
+    Application, Command,
 };
+use reqwest::Client;
 use serde_json::json;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Message {
+    ShowPlayer(Player),
     AddXp,
 }
 
-pub struct PlayerWidget {
-    player: Player,
-    client: reqwest::blocking::Client,
+pub struct App {
+    player: Option<Player>,
+    client: Client,
 }
 
-impl Sandbox for PlayerWidget {
+impl Application for App {
     type Message = Message;
 
-    fn new() -> Self {
-        let client = reqwest::blocking::Client::new();
-        let player: Player = client
+    type Executor = executor::Default;
+
+    type Theme = iced::Theme;
+
+    type Flags = ();
+
+    fn new(_flags: ()) -> (Self, Command<Message>) {
+        let client = Client::new();
+        let get_player = client
             .get("http://localhost:8080/api/player/1")
             .send()
-            .unwrap()
-            .json()
-            .unwrap();
-        Self { player, client }
+            .then(|response| response.unwrap().json())
+            .map(|player| Message::ShowPlayer(player.unwrap()));
+        (
+            Self {
+                player: None,
+                client,
+            },
+            Command::perform(get_player, |message| message),
+        )
     }
 
     fn title(&self) -> String {
         "Habi2ca".to_owned()
     }
 
-    fn update(&mut self, message: Self::Message) {
+    fn update(&mut self, message: Self::Message) -> Command<Message> {
         match message {
             Message::AddXp => {
                 let xp_delta = 1.0;
-                self.client
+                let client = self.client.clone();
+                let update_xp = client
+                    .clone()
                     .post("http://localhost:8080/api/player/1/add_xp")
                     .query(&json!({
                         "xp": xp_delta,
                     }))
                     .send()
-                    .unwrap()
-                    .error_for_status()
-                    .unwrap();
-                self.player = self
-                    .client
-                    .get("http://localhost:8080/api/player/1")
-                    .send()
-                    .unwrap()
-                    .json()
-                    .unwrap();
-                println!("{}", self.player.xp());
+                    .then(move |response| {
+                        response.unwrap().error_for_status().unwrap();
+                        client.get("http://localhost:8080/api/player/1").send()
+                    })
+                    .then(|response| response.unwrap().json())
+                    .map(|player| Message::ShowPlayer(player.unwrap()));
+                Command::perform(update_xp, |message| message)
+            }
+            Message::ShowPlayer(player) => {
+                self.player = Some(player);
+                Command::none()
             }
         }
     }
 
     fn view(&self) -> iced::Element<'_, Self::Message> {
-        column![
-            text(format!("id: {}", self.player.id)),
-            text(format!("Name: {}", self.player.data.name)),
-            row![
-                text(format!("XP: {}", self.player.data.xp)),
-                button("Add XP").on_press(Message::AddXp)
+        if let Some(player) = &self.player {
+            column![
+                text(format!("id: {}", player.id)),
+                text(format!("Name: {}", player.data.name)),
+                row![
+                    text(format!("XP: {}", player.data.xp)),
+                    button("Add XP").on_press(Message::AddXp)
+                ]
             ]
-        ]
-        .into()
+            .into()
+        } else {
+            iced::Element::new(Text::new("Loading..."))
+        }
     }
 }
 
 pub fn main() -> iced::Result {
-    PlayerWidget::run(iced::Settings::default())
+    App::run(iced::Settings::default())
 }

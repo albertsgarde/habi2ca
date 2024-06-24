@@ -1,5 +1,5 @@
 use super::Database;
-use anyhow::{bail, ensure, Context, Result};
+use anyhow::{bail, Context, Result};
 use habi2ca_common::player::{Player, PlayerData, PlayerId};
 use tokio_rusqlite::{params, OptionalExtension};
 

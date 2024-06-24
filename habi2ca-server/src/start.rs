@@ -52,6 +52,7 @@ pub fn create_app(
 
 pub async fn start_server() -> Result<Empty> {
     let database_path = PathBuf::from("local/data.db");
+    fs::create_dir_all(database_path.parent().unwrap())?;
     if database_path.exists() {
         fs::remove_file(database_path.as_path())?;
     }
