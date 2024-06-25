@@ -79,7 +79,7 @@ mod test {
 
     #[tokio::test]
     async fn create_player() {
-        let database = Database::initialize_in_memory().await.unwrap();
+        let database = Database::create_in_memory().await.unwrap();
         let player_id = database.create_player("Alice").await.unwrap();
         assert_eq!(player_id.0, 1);
 
@@ -91,7 +91,7 @@ mod test {
 
     #[tokio::test]
     async fn add_xp() {
-        let database = Database::initialize_in_memory().await.unwrap();
+        let database = Database::create_in_memory().await.unwrap();
         let player_id = database.create_player("Alice").await.unwrap();
 
         database.add_xp(player_id, 10.0).await.unwrap();

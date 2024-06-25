@@ -4,15 +4,7 @@ mod start;
 mod state;
 mod table_definitions;
 
-use std::path::{Path, PathBuf};
-
-use actix_web::{
-    middleware::{self, TrailingSlash},
-    web, HttpServer,
-};
-use anyhow::{bail, Context, Result};
-use database::Database;
-use state::State;
+use anyhow::Result;
 
 #[tokio::main]
 pub async fn main() -> Result<()> {

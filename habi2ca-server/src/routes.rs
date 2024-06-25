@@ -1,7 +1,5 @@
 use actix_web::{get, post, web, HttpRequest, Responder, ResponseError};
 use anyhow::{Context, Result};
-use habi2ca_common::player::PlayerId;
-use serde_json::Value;
 use std::collections::HashMap;
 use thiserror::Error;
 
@@ -69,20 +67,15 @@ pub async fn add_xp(
 mod tests {
     use crate::{database::Database, start::create_app};
 
-    use super::*;
     use actix_web::{
         http,
         test::{self, TestRequest},
-        App,
     };
-    use anyhow::Result;
-    use habi2ca_common::player::Player;
-    use std::collections::HashMap;
-    use tokio::pin;
+    use habi2ca_common::player::{Player, PlayerId};
 
     #[tokio::test]
     async fn test_get_player() {
-        let database = Database::initialize_in_memory().await.unwrap();
+        let database = Database::create_in_memory().await.unwrap();
         let app = test::init_service(create_app(database)).await;
 
         let create_player_req = TestRequest::post()

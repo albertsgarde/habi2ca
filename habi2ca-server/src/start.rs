@@ -3,7 +3,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use actix_service::{IntoServiceFactory, Service};
 use actix_web::{
     dev::{ServiceFactory, ServiceRequest},
     middleware::{self, TrailingSlash},
@@ -22,7 +21,7 @@ pub async fn open_or_initialize_database(database_path: impl AsRef<Path>) -> Res
             .await
             .with_context(|| format!("Failed to open database at '{database_path:?}'"))
     } else {
-        Database::initialize(database_path)
+        Database::create(database_path)
             .await
             .with_context(|| format!("Failed to initialize database at '{database_path:?}'"))
     }
