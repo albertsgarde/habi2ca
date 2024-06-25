@@ -41,12 +41,7 @@ pub fn create_app(
     App::new()
         .app_data(web::Data::new(State::new(database)))
         .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
-        .service(
-            web::scope("/api")
-                .service(routes::create_player)
-                .service(routes::add_xp)
-                .service(routes::get_player),
-        )
+        .service(routes::add_routes(web::scope("/api")))
 }
 
 pub async fn start_server() -> Result<Empty> {

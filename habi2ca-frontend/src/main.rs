@@ -31,7 +31,7 @@ impl Application for App {
     fn new(_flags: ()) -> (Self, Command<Message>) {
         let client = Client::new();
         let get_player = client
-            .get("http://localhost:8080/api/player/1")
+            .get("http://localhost:8080/api/players/1")
             .send()
             .then(|response| response.unwrap().json())
             .map(|player| Message::ShowPlayer(player.unwrap()));
@@ -55,14 +55,14 @@ impl Application for App {
                 let client = self.client.clone();
                 let update_xp = client
                     .clone()
-                    .post("http://localhost:8080/api/player/1/add_xp")
+                    .post("http://localhost:8080/api/players/1/add_xp")
                     .query(&json!({
                         "xp": xp_delta,
                     }))
                     .send()
                     .then(move |response| {
                         response.unwrap().error_for_status().unwrap();
-                        client.get("http://localhost:8080/api/player/1").send()
+                        client.get("http://localhost:8080/api/players/1").send()
                     })
                     .then(|response| response.unwrap().json())
                     .map(|player| Message::ShowPlayer(player.unwrap()));
