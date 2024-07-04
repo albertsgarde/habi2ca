@@ -5,7 +5,7 @@ use iced::{
     widget::{button, column, row, text, Text},
     Application, Command,
 };
-use reqwest::Client;
+use reqwest::{Client, Url};
 use serde_json::json;
 
 #[derive(Debug, Clone)]
@@ -14,7 +14,12 @@ pub enum Message {
     AddXp,
 }
 
+pub struct Config {
+    pub server_url: Url,
+}
+
 pub struct App {
+    server_url: Url,
     player: Option<Player>,
     client: Client,
 }
@@ -26,17 +31,19 @@ impl Application for App {
 
     type Theme = iced::Theme;
 
-    type Flags = ();
+    type Flags = Config;
 
-    fn new(_flags: ()) -> (Self, Command<Message>) {
+    fn new(config: Config) -> (Self, Command<Message>) {
         let client = Client::new();
+        let Config { server_url } = config;
         let get_player = client
-            .get("http://localhost:8080/api/players/1")
+            .get(server_url.join("api/players/1").unwrap())
             .send()
             .then(|response| response.unwrap().json())
             .map(|player| Message::ShowPlayer(player.unwrap()));
         (
             Self {
+                server_url,
                 player: None,
                 client,
             },
@@ -53,16 +60,21 @@ impl Application for App {
             Message::AddXp => {
                 let xp_delta = 1.0;
                 let client = self.client.clone();
+
+                let add_xp_url = self.server_url.join("api/players/1/add_xp").unwrap();
+                let player_url = self.server_url.join("api/players/1").unwrap();
+                println!("{player_url:?}");
+
                 let update_xp = client
                     .clone()
-                    .post("http://localhost:8080/api/players/1/add_xp")
+                    .post(add_xp_url)
                     .query(&json!({
                         "xp": xp_delta,
                     }))
                     .send()
                     .then(move |response| {
                         response.unwrap().error_for_status().unwrap();
-                        client.get("http://localhost:8080/api/players/1").send()
+                        client.get(player_url).send()
                     })
                     .then(|response| response.unwrap().json())
                     .map(|player| Message::ShowPlayer(player.unwrap()));
@@ -93,5 +105,7 @@ impl Application for App {
 }
 
 pub fn main() -> iced::Result {
-    App::run(iced::Settings::default())
+    App::run(iced::Settings::with_flags(Config {
+        server_url: Url::parse("http://localhost:8080").unwrap(),
+    }))
 }
