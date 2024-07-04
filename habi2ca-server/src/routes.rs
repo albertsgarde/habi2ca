@@ -1,4 +1,5 @@
 mod players;
+mod tasks;
 
 use actix_web::{web, ResponseError, Scope};
 use thiserror::Error;

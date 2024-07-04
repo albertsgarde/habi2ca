@@ -5,7 +5,7 @@ use anyhow::Context;
 
 use crate::{routes::RouteError, state::State};
 
-#[post("/")]
+#[post("")]
 pub async fn create_player(
     state: web::Data<State>,
     query: web::Query<HashMap<String, String>>,
@@ -67,7 +67,7 @@ mod tests {
     use habi2ca_common::player::{Player, PlayerId};
 
     #[tokio::test]
-    async fn test_create_player() {
+    async fn create_player() {
         let database = Database::create_in_memory().await.unwrap();
         let app = test::init_service(create_app(database)).await;
 
@@ -79,21 +79,15 @@ mod tests {
         )
         .await;
 
+        println!("{:?}", resp);
         assert_eq!(resp.0, 1);
     }
 
     #[tokio::test]
-    async fn test_get_player() {
+    async fn get_player() {
         let database = Database::create_in_memory().await.unwrap();
+        database.create_player("Alice").await.unwrap();
         let app = test::init_service(create_app(database)).await;
-
-        let create_player_req = TestRequest::post()
-            .uri("/api/players/?name=Alice")
-            .to_request();
-
-        let resp: PlayerId = test::call_and_read_body_json(&app, create_player_req).await;
-
-        assert_eq!(resp.0, 1);
 
         let resp: Player = test::call_and_read_body_json(
             &app,
@@ -107,20 +101,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_add_xp() {
+    async fn add_xp() {
         let database = Database::create_in_memory().await.unwrap();
+        database.create_player("Alice").await.unwrap();
         let app = test::init_service(create_app(database)).await;
 
-        let create_player_req = TestRequest::post()
-            .uri("/api/players/?name=Alice")
-            .to_request();
         let add_xp_req = TestRequest::post()
             .uri("/api/players/1/add_xp?xp=10.0")
             .to_request();
-
-        let resp: PlayerId = test::call_and_read_body_json(&app, create_player_req).await;
-
-        assert_eq!(resp.0, 1);
 
         let resp: Player = test::call_and_read_body_json(
             &app,
