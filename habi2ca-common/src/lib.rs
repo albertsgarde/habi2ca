@@ -1,5 +1,5 @@
 pub mod player;
-mod task;
+pub mod task;
 
 #[macro_export]
 macro_rules! implement_id {
