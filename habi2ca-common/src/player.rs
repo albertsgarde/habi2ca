@@ -1,35 +1,8 @@
-use std::fmt::Display;
-
-use rusqlite::{
-    types::{FromSql, ToSqlOutput, Value, ValueRef},
-    ToSql,
-};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct PlayerId(pub i64);
+use crate::implement_id;
 
-impl ToSql for PlayerId {
-    fn to_sql(&self) -> rusqlite::Result<rusqlite::types::ToSqlOutput<'_>> {
-        Ok(ToSqlOutput::Owned(Value::Integer(self.0)))
-    }
-}
-
-impl FromSql for PlayerId {
-    fn column_result(value: ValueRef<'_>) -> rusqlite::types::FromSqlResult<Self> {
-        if let ValueRef::Integer(id) = value {
-            Ok(PlayerId(id))
-        } else {
-            Err(rusqlite::types::FromSqlError::InvalidType)
-        }
-    }
-}
-
-impl Display for PlayerId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
+implement_id!(PlayerId);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerData {
