@@ -19,5 +19,7 @@ impl From<anyhow::Error> for RouteError {
 impl ResponseError for RouteError {}
 
 pub fn add_routes(scope: Scope) -> Scope {
-    scope.service(players::add_routes(web::scope("/players")))
+    scope
+        .service(players::add_routes(web::scope("/players")))
+        .service(tasks::add_routes(web::scope("/tasks")))
 }

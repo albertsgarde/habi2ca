@@ -1,12 +1,11 @@
 mod player;
+mod tasks;
 
 use anyhow::{bail, Context, Result};
 use std::path::Path;
 use tokio_rusqlite::Connection;
 
-use crate::table_definitions;
-
-const TABLES: &[&str] = &[table_definitions::PLAYER_TABLE];
+use crate::table_definitions::TABLES;
 
 #[derive(Clone)]
 pub struct Database {
