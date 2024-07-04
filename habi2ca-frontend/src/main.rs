@@ -62,21 +62,15 @@ impl Application for App {
                 let client = self.client.clone();
 
                 let add_xp_url = self.server_url.join("api/players/1/add_xp").unwrap();
-                let player_url = self.server_url.join("api/players/1").unwrap();
-                println!("{player_url:?}");
 
                 let update_xp = client
                     .clone()
-                    .post(add_xp_url)
+                    .patch(add_xp_url)
                     .query(&json!({
                         "xp": xp_delta,
                     }))
                     .send()
-                    .then(move |response| {
-                        response.unwrap().error_for_status().unwrap();
-                        client.get(player_url).send()
-                    })
-                    .then(|response| response.unwrap().json())
+                    .then(move |response| response.unwrap().error_for_status().unwrap().json())
                     .map(|player| Message::ShowPlayer(player.unwrap()));
                 Command::perform(update_xp, |message| message)
             }
