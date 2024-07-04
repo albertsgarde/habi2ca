@@ -67,7 +67,47 @@ mod tests {
     use habi2ca_common::player::{Player, PlayerId};
 
     #[tokio::test]
+    async fn test_create_player() {
+        let database = Database::create_in_memory().await.unwrap();
+        let app = test::init_service(create_app(database)).await;
+
+        let resp: PlayerId = test::call_and_read_body_json(
+            &app,
+            TestRequest::post()
+                .uri("/api/players/?name=Alice")
+                .to_request(),
+        )
+        .await;
+
+        assert_eq!(resp.0, 1);
+    }
+
+    #[tokio::test]
     async fn test_get_player() {
+        let database = Database::create_in_memory().await.unwrap();
+        let app = test::init_service(create_app(database)).await;
+
+        let create_player_req = TestRequest::post()
+            .uri("/api/players/?name=Alice")
+            .to_request();
+
+        let resp: PlayerId = test::call_and_read_body_json(&app, create_player_req).await;
+
+        assert_eq!(resp.0, 1);
+
+        let resp: Player = test::call_and_read_body_json(
+            &app,
+            TestRequest::get().uri("/api/players/1").to_request(),
+        )
+        .await;
+
+        assert_eq!(resp.id.0, 1);
+        assert_eq!(resp.data.name, "Alice");
+        assert_eq!(resp.data.xp, 0.0);
+    }
+
+    #[tokio::test]
+    async fn test_add_xp() {
         let database = Database::create_in_memory().await.unwrap();
         let app = test::init_service(create_app(database)).await;
 
