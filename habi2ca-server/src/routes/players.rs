@@ -11,7 +11,6 @@ pub async fn create_player(
     query: web::Query<HashMap<String, String>>,
 ) -> Result<impl Responder, RouteError> {
     let player_name = query.get("name").context("Missing 'name' parameter")?;
-    println!("Creating player with name {player_name}.");
     let player_id = state.database().create_player(player_name).await?;
     let player = state
         .database()
