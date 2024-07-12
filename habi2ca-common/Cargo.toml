@@ -4,5 +4,8 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-rusqlite.workspace = true
+rusqlite = {optional = true, workspace = true}
 serde.workspace = true
+
+[features]
+sql = ["dep:rusqlite"]

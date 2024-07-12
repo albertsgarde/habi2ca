@@ -8,7 +8,7 @@ actix-web.workspace = true
 actix-service.workspace = true
 actix-http.workspace = true
 anyhow.workspace = true
-habi2ca-common = { version = "0.0.0", path = "../habi2ca-common" }
+habi2ca-common = { version = "0.0.0", path = "../habi2ca-common", features = ["sql"] }
 thiserror.workspace = true
 tokio.workspace = true
 tokio-rusqlite.workspace = true

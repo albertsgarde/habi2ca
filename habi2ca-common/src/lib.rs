@@ -7,6 +7,7 @@ macro_rules! implement_id {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
         pub struct $name(pub i64);
 
+        #[cfg(feature = "sql")]
         impl rusqlite::ToSql for $name {
             fn to_sql(&self) -> rusqlite::Result<rusqlite::types::ToSqlOutput<'_>> {
                 Ok(rusqlite::types::ToSqlOutput::Owned(
@@ -15,6 +16,7 @@ macro_rules! implement_id {
             }
         }
 
+        #[cfg(feature = "sql")]
         impl rusqlite::types::FromSql for $name {
             fn column_result(
                 value: rusqlite::types::ValueRef<'_>,
