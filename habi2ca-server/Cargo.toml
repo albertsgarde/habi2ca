@@ -13,3 +13,7 @@ thiserror.workspace = true
 tokio.workspace = true
 tokio-rusqlite.workspace = true
 serde_json.workspace = true
+tracing.workspace = true
+tracing-actix-web.workspace = true
+env_logger.workspace = true
+log.workspace = true

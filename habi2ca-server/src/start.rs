@@ -4,11 +4,13 @@ use std::{
 };
 
 use actix_web::{
+    body::BoxBody,
     dev::{ServiceFactory, ServiceRequest},
     middleware::{self, TrailingSlash},
     web, App, HttpServer,
 };
 use anyhow::{bail, Context, Result};
+use tracing_actix_web::{StreamSpan, TracingLogger};
 
 use crate::{database::Database, routes, state::State};
 
@@ -33,7 +35,7 @@ pub fn create_app(
     impl ServiceFactory<
         ServiceRequest,
         Config = (),
-        Response = actix_web::dev::ServiceResponse,
+        Response = actix_web::dev::ServiceResponse<StreamSpan<BoxBody>>,
         Error = actix_web::Error,
         InitError = (),
     >,
@@ -41,6 +43,7 @@ pub fn create_app(
     App::new()
         .app_data(web::Data::new(State::new(database)))
         .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
+        .wrap(TracingLogger::default())
         .service(routes::add_routes(web::scope("/api")))
 }
 
