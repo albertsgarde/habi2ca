@@ -186,6 +186,6 @@ impl Application for App {
 
 pub fn main() -> iced::Result {
     App::run(iced::Settings::with_flags(Config {
-        server_url: Url::parse("http://localhost:8080").unwrap(),
+        server_url: Url::parse("http://127.0.0.1:8080").unwrap(),
     }))
 }

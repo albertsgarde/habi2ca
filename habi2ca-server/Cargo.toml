@@ -13,3 +13,4 @@ thiserror.workspace = true
 tokio.workspace = true
 tokio-rusqlite.workspace = true
 serde_json.workspace = true
+actix-files.workspace = true

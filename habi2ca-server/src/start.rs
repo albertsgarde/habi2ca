@@ -10,7 +10,7 @@ use actix_web::{
 };
 use anyhow::{bail, Context, Result};
 
-use crate::{database::Database, routes, state::State};
+use crate::{database::Database, frontend, routes, state::State};
 
 pub enum Empty {}
 
@@ -42,6 +42,8 @@ pub fn create_app(
         .app_data(web::Data::new(State::new(database)))
         .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
         .service(routes::add_routes(web::scope("/api")))
+        .service(frontend::add_routes(web::scope("/app")))
+        .service(web::redirect("/", "/app"))
 }
 
 pub async fn start_server() -> Result<Empty> {
@@ -53,7 +55,7 @@ pub async fn start_server() -> Result<Empty> {
     let database = open_or_initialize_database(&database_path).await?;
     database.create_player("Alice").await?;
 
-    let url = "localhost";
+    let url = "127.0.0.1";
     let port = 8080;
 
     let server = HttpServer::new(move || create_app(database.clone()));
