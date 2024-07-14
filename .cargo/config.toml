@@ -1,5 +1,5 @@
 [alias]
-server = "run --bin habi2ca-server"
+server = "run --bin run_backend"
 cli = "run --bin habi2ca-cli"
-frontend = "run --bin habi2ca-frontend"
+client = "run --bin habi2ca-frontend"
 t = "nextest run"
