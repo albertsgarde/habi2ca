@@ -1,3 +1,9 @@
+FROM lukemathwalker/cargo-chef:0.1.67-rust-1.79-slim-buster AS chef-with-build-deps
+RUN apt-get update && apt-get install -y libssl-dev pkg-config
+RUN rustup target add wasm32-unknown-unknown
+RUN cargo install --locked wasm-bindgen-cli
+RUN cargo install --locked trunk
+
 # Use an image with a specific version of Rust.
 FROM lukemathwalker/cargo-chef:0.1.67-rust-1.79-slim-buster AS planner
 # This container only exists to run 'cargo chef prepare' which sets up 'recipe.json' for the next stage.
@@ -7,12 +13,10 @@ COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 
-FROM lukemathwalker/cargo-chef:0.1.67-rust-1.79-slim-buster AS backend-build
+FROM chef-with-build-deps AS backend-build
 # This container builds the backend.
 
 WORKDIR /habi2ca
-
-RUN apt-get update && apt-get install -y libssl-dev pkg-config
 
 # Build dependencies
 COPY  --from=planner /habi2ca/recipe.json recipe.json
@@ -20,8 +24,6 @@ RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY . .
 # Build WASM frontend
-RUN rustup target add wasm32-unknown-unknown
-RUN cargo install trunk
 WORKDIR habi2ca-frontend
 RUN trunk build --release
 # Build backend binary
