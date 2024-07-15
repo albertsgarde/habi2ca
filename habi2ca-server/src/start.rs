@@ -1,7 +1,4 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::Path};
 
 use actix_web::{
     dev::{ServiceFactory, ServiceRequest},
@@ -10,9 +7,7 @@ use actix_web::{
 };
 use anyhow::{bail, Context, Result};
 
-use crate::{database::Database, frontend, routes, state::State};
-
-pub enum Empty {}
+use crate::{cli::ServerConfig, database::Database, frontend, routes, state::State, Never};
 
 pub async fn open_or_initialize_database(database_path: impl AsRef<Path>) -> Result<Database> {
     let database_path = database_path.as_ref();
@@ -46,8 +41,13 @@ pub fn create_app(
         .service(web::redirect("/", "/app"))
 }
 
-pub async fn start_server() -> Result<Empty> {
-    let database_path = PathBuf::from("local/data.db");
+pub async fn start_server(config: ServerConfig) -> Result<Never> {
+    let ServerConfig {
+        database_path,
+        hostname,
+        port,
+    } = config;
+    let hostname = hostname.as_ref();
     fs::create_dir_all(database_path.parent().unwrap())?;
     if database_path.exists() {
         fs::remove_file(database_path.as_path())?;
@@ -55,13 +55,10 @@ pub async fn start_server() -> Result<Empty> {
     let database = open_or_initialize_database(&database_path).await?;
     database.create_player("Alice").await?;
 
-    let url = "127.0.0.1";
-    let port = 8080;
-
     let server = HttpServer::new(move || create_app(database.clone()));
 
-    println!("Starting server at http://{}:{}", url, port);
-    server.bind((url, port))?.run().await?;
+    println!("Starting server at http://{hostname}:{port}");
+    server.bind((hostname, port))?.run().await?;
 
     bail!("Server stopped unexpectedly.")
 }

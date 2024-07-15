@@ -14,3 +14,4 @@ tokio.workspace = true
 tokio-rusqlite.workspace = true
 serde_json.workspace = true
 actix-files.workspace = true
+clap.workspace = true

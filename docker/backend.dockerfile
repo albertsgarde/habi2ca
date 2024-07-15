@@ -39,4 +39,4 @@ COPY --from=backend-build /habi2ca/habi2ca-frontend/dist ./habi2ca-frontend/dist
 COPY --from=backend-build /habi2ca/target/release/habi2ca-server ./habi2ca-server
 
 # Set the startup command to run your binary
-CMD ["./habi2ca-server"]
+CMD ["./habi2ca-server", "data.db", "0.0.0.0", "8080"]
