@@ -8,6 +8,8 @@ use habi2ca_ops as ops;
 struct Cli {
     #[arg(long, default_value = "false")]
     release: bool,
+    #[arg(last = true)]
+    backend_args: Vec<String>,
 }
 
 pub fn main() -> Result<()> {
@@ -23,6 +25,7 @@ pub fn main() -> Result<()> {
     if release {
         command.arg("--release");
     }
+    command.args(cli.backend_args);
     command
         .spawn()
         .with_context(|| {
