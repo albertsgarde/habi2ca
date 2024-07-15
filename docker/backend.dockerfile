@@ -1,5 +1,5 @@
 FROM lukemathwalker/cargo-chef:0.1.67-rust-1.79-slim-buster AS chef-with-build-deps
-RUN apt-get update && apt-get install -y libssl-dev pkg-config
+RUN apt-get update && apt-get install -y libssl-dev pkg-config binaryen
 RUN rustup target add wasm32-unknown-unknown
 RUN cargo install --locked wasm-bindgen-cli
 RUN cargo install --locked trunk
@@ -22,7 +22,7 @@ WORKDIR /habi2ca
 COPY  --from=planner /habi2ca/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
-COPY . .
+COPY --exclude=docker/* . .
 # Build WASM frontend
 WORKDIR habi2ca-frontend
 RUN trunk build --release
@@ -33,6 +33,8 @@ RUN cargo build --release --bin habi2ca-server
 
 # Our final base
 FROM debian:buster-slim AS backend-prod
+ENV PORT=8080
+
 WORKDIR /habi2ca
 
 # Copy the frontend ´dist´ directory.
@@ -41,4 +43,4 @@ COPY --from=backend-build /habi2ca/habi2ca-frontend/dist ./habi2ca-frontend/dist
 COPY --from=backend-build /habi2ca/target/release/habi2ca-server ./habi2ca-server
 
 # Set the startup command to run your binary
-CMD ["./habi2ca-server", "data.db", "0.0.0.0", "8080"]
+CMD ["sh", "-c", "./habi2ca-server data.db 0.0.0.0 ${PORT}"]
