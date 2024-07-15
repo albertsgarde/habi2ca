@@ -185,7 +185,15 @@ impl Application for App {
 }
 
 pub fn main() -> iced::Result {
+    let backend_url = Url::parse(
+        &web_sys::window()
+            .expect("no window. Probably running outside of a browser.")
+            .location()
+            .origin()
+            .expect("Failed to get url origin."),
+    )
+    .expect("Failed to parse origin as URL.");
     App::run(iced::Settings::with_flags(Config {
-        server_url: Url::parse("http://127.0.0.1:8080").unwrap(),
+        server_url: backend_url,
     }))
 }
