@@ -8,8 +8,12 @@ habi2ca-common = { version = "0.0.0", path = "../habi2ca-common" }
 iced = { version = "0.12.1", features = ["tokio", "webgl"] }
 reqwest = { version = "0.12.5", features = ["json"] }
 serde_json.workspace = true
-
+clap.workspace = true
 
 rand = { version = "0.8.5", default-features = false, features = [] }
 getrandom = { version = "0.2", features = ["js"] }
-web-sys = {version="0.3.67", features = ["Window", "Location"]}
+
+web-sys = {version="0.3.67", features = ["Window", "Location"], optional=true }
+
+[features]
+web = ["dep:web-sys"]
