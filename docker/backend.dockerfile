@@ -22,7 +22,7 @@ WORKDIR /habi2ca
 COPY  --from=planner /habi2ca/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
-COPY --exclude=docker/* . .
+COPY . .
 # Build WASM frontend
 WORKDIR habi2ca-frontend
 RUN trunk build --release
