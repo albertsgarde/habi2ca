@@ -33,6 +33,7 @@ RUN cargo build --release --bin habi2ca-server
 
 # Our final base
 FROM debian:buster-slim AS backend-prod
+ENV DATABASE_PATH=/habi2ca/habi2ca.db
 ENV PORT=8080
 
 WORKDIR /habi2ca
@@ -43,4 +44,4 @@ COPY --from=backend-build /habi2ca/habi2ca-frontend/dist ./habi2ca-frontend/dist
 COPY --from=backend-build /habi2ca/target/release/habi2ca-server ./habi2ca-server
 
 # Set the startup command to run your binary
-CMD ["sh", "-c", "./habi2ca-server data.db 0.0.0.0 ${PORT}"]
+CMD ["sh", "-c", "./habi2ca-server ${DATABASE_PATH} 0.0.0.0 ${PORT}"]
