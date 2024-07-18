@@ -49,9 +49,6 @@ pub async fn start_server(config: ServerConfig) -> Result<Never> {
     } = config;
     let hostname = hostname.as_ref();
     fs::create_dir_all(database_path.parent().unwrap())?;
-    if database_path.exists() {
-        fs::remove_file(database_path.as_path())?;
-    }
     let database = open_or_initialize_database(&database_path).await?;
     database.create_player("Alice").await?;
 
