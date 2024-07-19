@@ -38,7 +38,7 @@ impl TaskData {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Task {
     pub id: TaskId,
     pub data: TaskData,

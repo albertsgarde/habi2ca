@@ -1,9 +1,10 @@
 mod application;
 
+use anyhow::Result;
 use application::{App, Config};
 use clap::Parser;
-use iced::Application;
 use reqwest::Url;
+use yew::Renderer;
 
 #[derive(Parser, Clone, Debug)]
 pub struct Cli {
@@ -31,13 +32,15 @@ pub fn fallback_backend_url() -> Url {
     }
 }
 
-pub fn main() -> iced::Result {
+pub fn main() -> Result<()> {
     let cli = Cli::parse();
     let backend_url = cli
         .backend_url
         .map(|url| Url::parse(&url).expect("Failed to parse URL."))
         .unwrap_or_else(fallback_backend_url);
-    App::run(iced::Settings::with_flags(Config {
+    Renderer::<App>::with_props(Config {
         server_url: backend_url,
-    }))
+    })
+    .render();
+    Ok(())
 }

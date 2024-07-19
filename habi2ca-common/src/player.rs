@@ -4,7 +4,7 @@ use crate::implement_id;
 
 implement_id!(PlayerId);
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PlayerData {
     pub name: String,
     pub xp: f32,
@@ -27,7 +27,7 @@ impl PlayerData {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Player {
     pub id: PlayerId,
     pub data: PlayerData,

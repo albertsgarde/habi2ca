@@ -1,44 +1,97 @@
-use habi2ca_common::{
-    player::Player,
-    task::{Task, TaskId},
-};
-use iced::{
-    executor,
-    futures::FutureExt,
-    widget::{button, column, row, text, Column, Text},
-    Application, Command,
-};
-use reqwest::{Client, Response, Url};
-use serde_json::json;
+use habi2ca_common::player::Player;
+use reqwest::{Client, Url};
+use yew::{function_component, html, Callback, Html, Properties};
 
-async fn unwrap_response(response: Response) -> Response {
-    if response.status().is_success() {
-        response
-    } else {
-        panic!("Request failed: {}", response.text().await.unwrap())
+#[derive(Properties, PartialEq, Clone)]
+struct PlayerStatsProps {
+    player: Option<Player>,
+    on_add_xp: Callback<()>,
+}
+
+#[function_component(PlayerStats)]
+fn player_stats(props: &PlayerStatsProps) -> Html {
+    let PlayerStatsProps { player, on_add_xp } = props.clone();
+    let on_add_xp = Callback::from(move |_| on_add_xp.emit(()));
+
+    html! {
+        <div>
+            {player.map(|player| html!{
+                <div>
+                    <div>{format!("ID: {}", player.id)}</div>
+                    <div>{format!("Name: {}", player.data.name)}</div>
+                    <div>
+                        {format!("XP: {}", player.data.xp)}
+                        <button onclick={on_add_xp}>{"Add XP"}</button>
+                    </div>
+                </div>
+            }).unwrap_or_else(|| html!{"Loading..."})}
+        </div>
     }
 }
 
-#[derive(Debug, Clone)]
-pub enum Message {
-    UpdatePlayer(Player),
-    AddXp,
-    CreateTask,
-    CompleteTask(TaskId),
-    UpdateTasks(Vec<Task>),
-}
-
+#[derive(Properties, PartialEq, Clone)]
 pub struct Config {
     pub server_url: Url,
 }
 
-pub struct App {
-    server_url: Url,
-    player: Option<Player>,
-    tasks: Vec<Task>,
-    client: Client,
+#[function_component(App)]
+pub fn app(config: &Config) -> Html {
+    let client = Client::new();
+    let Config { server_url } = config;
+
+    let player = yew::use_state_eq(|| None);
+    {
+        let player = player.clone();
+        let client = client.clone();
+        let server_url = server_url.clone();
+        yew::use_effect_with((), move |_| {
+            let player = player.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let fetched_player: Player = client
+                    .get(server_url.join("api/players/1").unwrap())
+                    .send()
+                    .await
+                    .unwrap()
+                    .json()
+                    .await
+                    .unwrap();
+                player.set(Some(fetched_player));
+            })
+        })
+    }
+
+    let on_add_xp = {
+        let player = player.clone();
+        let server_url = server_url.clone();
+        let client = client.clone();
+        Callback::from(move |_| {
+            let player = player.clone();
+            let client = client.clone();
+
+            let server_url = server_url.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let xp_delta = 1.0;
+                let updated_player: Player = client
+                    .patch(server_url.join("api/players/1/add_xp").unwrap())
+                    .query(&[("xp", xp_delta)])
+                    .send()
+                    .await
+                    .unwrap()
+                    .json()
+                    .await
+                    .unwrap();
+                player.set(Some(updated_player));
+            })
+        })
+    };
+
+    html! {
+    <>
+        <PlayerStats player={(*player).clone()} on_add_xp={on_add_xp} />
+    </>}
 }
 
+/*
 impl Application for App {
     type Message = Message;
 
@@ -106,15 +159,16 @@ impl Application for App {
             Message::CreateTask => {
                 let client = self.client.clone();
                 let tasks_url = self.server_url.join("api/tasks").unwrap();
+                let task_data = TaskData {
+                    player: self.player.as_ref().unwrap().id,
+                    name: "Task1".to_owned(),
+                    description: "Description1".to_owned(),
+                    completed: false,
+                };
                 let create_task = client
                     .clone()
                     .post(tasks_url.as_ref())
-                    .json(&json!({
-                        "player": 1,
-                        "name": "Task1",
-                        "description": "Description1",
-                        "completed": false,
-                    }))
+                    .json(&task_data)
                     .send()
                     .then(|response| unwrap_response(response.unwrap()))
                     .then(|response| response.json::<Task>())
@@ -182,4 +236,4 @@ impl Application for App {
             iced::Element::new(Text::new("Loading..."))
         }
     }
-}
+}*/
