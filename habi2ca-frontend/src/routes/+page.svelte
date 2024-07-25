@@ -1,26 +1,23 @@
 <script lang="ts">
 	import { expect, origin } from '$lib/base';
 	import { addXp, type Player } from '$lib/player';
-	import { completeTask, createTask, getTasks, type Task } from '$lib/task';
+	import { completeTask, getTasks, type Task } from '$lib/task';
+	import TaskCreationDialog from './TaskCreationDialog.svelte';
 
 	export let data: { player: Player; tasks: Task[] };
 
 	$: player = data.player;
 	$: tasks = data.tasks;
+
+	let showCreateTaskDialog = false;
+	let createTaskDialog: TaskCreationDialog;
 </script>
 
 <h1>Habi2ca</h1>
 
 <button
 	on:click={async () => {
-		let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
-		await createTask(originUrl, {
-			player: player.id,
-			name: 'New Task',
-			description: 'This is a new task.',
-			completed: false
-		});
-		tasks = await getTasks(originUrl, player.id);
+		showCreateTaskDialog = true;
 	}}
 >
 	Create Task
@@ -49,3 +46,12 @@
 		</div>
 	{/if}
 {/each}
+<TaskCreationDialog
+	bind:this={createTaskDialog}
+	bind:showModal={showCreateTaskDialog}
+	playerId={player.id}
+	update={async () => {
+		let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
+		tasks = await getTasks(originUrl, player.id);
+	}}
+></TaskCreationDialog>
