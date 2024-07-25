@@ -1,6 +1,5 @@
 mod cli;
 mod database;
-mod frontend;
 mod routes;
 mod start;
 mod state;

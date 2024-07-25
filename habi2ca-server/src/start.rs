@@ -7,7 +7,7 @@ use actix_web::{
 };
 use anyhow::{bail, Context, Result};
 
-use crate::{cli::ServerConfig, database::Database, frontend, routes, state::State, Never};
+use crate::{cli::ServerConfig, database::Database, routes, state::State, Never};
 
 pub async fn open_or_initialize_database(database_path: impl AsRef<Path>) -> Result<Database> {
     let database_path = database_path.as_ref();
@@ -37,8 +37,6 @@ pub fn create_app(
         .app_data(web::Data::new(State::new(database)))
         .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
         .service(routes::add_routes(web::scope("/api")))
-        .service(frontend::add_routes(web::scope("/app")))
-        .service(web::redirect("/", "/app"))
 }
 
 pub async fn start_server(config: ServerConfig) -> Result<Never> {
