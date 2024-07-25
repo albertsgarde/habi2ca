@@ -14,6 +14,6 @@ export async function addXp(origin: URL, playerId: number): Promise<Player> {
     if (response.ok) {
         return await response.json();
     } else {
-        throw new Error(`Failed to add xp to player: ${response.statusText}`);
+        throw new Error(`Failed to add xp to player: ${await response.text()}`);
     }
 }

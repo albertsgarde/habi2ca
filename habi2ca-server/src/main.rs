@@ -22,6 +22,8 @@ impl Termination for Never {
 
 #[tokio::main]
 pub async fn main() -> Result<Never> {
+    env_logger::init();
+
     let server_config = ServerConfig::parse();
     server_config.start().await
 }
