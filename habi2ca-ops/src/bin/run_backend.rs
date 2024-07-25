@@ -17,7 +17,6 @@ pub fn main() -> Result<()> {
     let release = cli.release;
 
     let workspace_dir = ops::workspace_dir()?;
-    ops::trunk_build(workspace_dir.join("habi2ca-frontend"), release)?;
     let mut command = Command::new(env!("CARGO"));
     command
         .args(["run", "--bin", "habi2ca-server"])

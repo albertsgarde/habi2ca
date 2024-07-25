@@ -15,16 +15,3 @@ pub fn workspace_dir() -> Result<PathBuf> {
     let workspace_dir = cargo_path.parent().expect("Cargo.toml is a file and should therefore always have a parent.");
     Ok(workspace_dir.to_path_buf())
 }
-
-pub fn trunk_build(frontend_dir: impl AsRef<Path>, release: bool) -> Result<()> {
-    let mut command = Command::new("trunk");
-    command
-        .arg("build")
-        .current_dir(frontend_dir.as_ref());
-    if release {
-        command.arg("--release");
-    }
-    command.status()
-        .context("Failed to run trunk build command")?;
-    Ok(())
-}

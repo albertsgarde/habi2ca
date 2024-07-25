@@ -1,9 +1,7 @@
 [workspace]
 members = [
     "habi2ca-server",
-    "habi2ca-cli",
     "habi2ca-common",
-    "habi2ca-frontend",
     "habi2ca-ops",
 ]
 resolver = "2"
