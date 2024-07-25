@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 habi2ca-common = { version = "0.0.0", path = "../habi2ca-common" }
-iced = { version = "0.12.1", features = ["tokio", "webgl"] }
 reqwest = { version = "0.12.5", features = ["json"] }
 serde_json.workspace = true
 clap.workspace = true
@@ -13,7 +12,11 @@ clap.workspace = true
 rand = { version = "0.8.5", default-features = false, features = [] }
 getrandom = { version = "0.2", features = ["js"] }
 
-web-sys = {version="0.3.67", features = ["Window", "Location"], optional=true }
+web-sys = {version="0.3.67", features = ["Window", "Location"] }
 
-[features]
-web = ["dep:web-sys"]
+dioxus = { version = "0.5", features = ["web", "router"] }
+
+# Debug
+tracing = "0.1.40"
+dioxus-logger = "0.5.0"
+anyhow.workspace = true
