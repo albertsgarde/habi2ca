@@ -1,5 +1,8 @@
 import { onMount } from 'svelte';
-import { derived, type Subscriber, type Unsubscriber } from 'svelte/store';
+import { type Subscriber, type Unsubscriber } from 'svelte/store';
+import { env } from '$env/dynamic/public';
+
+export const BACKEND_ORIGIN: string = env.PUBLIC_BACKEND_ORIGIN || "http://localhost:8080";
 
 export function expect<T>(value: T | null, message: string): T {
     if (value === null || value === undefined) {
@@ -15,11 +18,3 @@ export const origin = {
         return () => { };
     }
 };
-
-export const apiOrigin = derived(origin, $origin => {
-    let api_origin = $origin;
-    if (api_origin !== null) {
-        api_origin.port = "8080";
-    }
-    return api_origin;
-});

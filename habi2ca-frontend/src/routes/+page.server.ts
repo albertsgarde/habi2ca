@@ -1,12 +1,12 @@
 
+import { BACKEND_ORIGIN } from '$lib/base';
 import type { Player } from '$lib/player';
 import type { Task } from '$lib/task';
 import { error } from '@sveltejs/kit';
 
 export async function load(): Promise<{ player: Player, tasks: Task[] }> {
-    const baseApiUrl = "http://localhost:8080/api";
-    const playerUrl = `${baseApiUrl}/players/1`;
-    const tasksUrl = `${baseApiUrl}/tasks?player=1`;
+    const playerUrl = `${BACKEND_ORIGIN}/api/players/1`;
+    const tasksUrl = `${BACKEND_ORIGIN}/api/tasks?player=1`;
     const playerPromise = fetch(playerUrl);
     const tasksPromise = fetch(tasksUrl);
 
