@@ -1,4 +1,4 @@
 [alias]
-server = "run --bin run_backend -- "
-client = "run --bin habi2ca-frontend"
-t = "nextest run"
+o = "run --bin habi2ca-ops"
+backend = "o backend"
+frontend = "o frontend"

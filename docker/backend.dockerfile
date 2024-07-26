@@ -4,6 +4,7 @@ FROM lukemathwalker/cargo-chef:0.1.67-rust-1.79-slim-buster AS planner
 
 WORKDIR /habi2ca
 COPY Cargo.toml Cargo.lock .
+COPY habi2ca-ops habi2ca-ops
 COPY habi2ca-server habi2ca-server
 COPY habi2ca-common habi2ca-common
 RUN cargo chef prepare --recipe-path recipe.json

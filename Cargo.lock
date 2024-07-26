@@ -707,6 +707,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "habi2ca-ops"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "clap",
+]
+
+[[package]]
 name = "habi2ca-server"
 version = "0.0.0"
 dependencies = [
