@@ -5,10 +5,14 @@ use clap::Args;
 
 #[derive(Args, Debug, Clone)]
 pub struct RunBackend {
+    #[arg(default_value = "./local/data.db")]
+    database_path: String,
+    #[arg(default_value = "localhost")]
+    hostname: String,
+    #[arg(default_value = "8080")]
+    port: u16,
     #[arg(long, default_value = "false")]
     release: bool,
-    #[arg(last = true)]
-    backend_args: Vec<String>,
 }
 
 impl RunBackend {
@@ -23,7 +27,12 @@ impl RunBackend {
         if release {
             command.arg("--release");
         }
-        command.args(self.backend_args);
+        command.args([
+            "--",
+            self.database_path.as_str(),
+            self.hostname.as_str(),
+            self.port.to_string().as_str(),
+        ]);
         command
             .spawn()
             .with_context(|| {
