@@ -1,4 +1,6 @@
 [alias]
 o = "run --bin habi2ca-ops"
 backend = "o backend"
+b = "backend"
 frontend = "o frontend"
+f = "frontend"
