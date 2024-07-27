@@ -1,9 +1,7 @@
 mod cli;
-mod database;
 mod routes;
 mod start;
 mod state;
-mod table_definitions;
 
 use std::process::Termination;
 

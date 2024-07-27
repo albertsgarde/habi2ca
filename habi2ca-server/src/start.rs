@@ -6,24 +6,28 @@ use actix_web::{
     web, App, HttpServer,
 };
 use anyhow::{bail, Context, Result};
+use sea_orm::{Database, DatabaseConnection};
 
-use crate::{cli::ServerConfig, database::Database, routes, state::State, Never};
+use crate::{cli::ServerConfig, routes, state::State, Never};
 
-pub async fn open_or_initialize_database(database_path: impl AsRef<Path>) -> Result<Database> {
+pub async fn open_or_initialize_database(
+    database_path: impl AsRef<Path>,
+) -> Result<DatabaseConnection> {
     let database_path = database_path.as_ref();
-    if database_path.exists() {
-        Database::open(database_path)
-            .await
-            .with_context(|| format!("Failed to open database at '{database_path:?}'"))
-    } else {
-        Database::create(database_path)
-            .await
-            .with_context(|| format!("Failed to initialize database at '{database_path:?}'"))
-    }
+    let database_url = format!("sqlite:{}?mode=rw", database_path.display());
+    let database = Database::connect(database_url.as_str())
+        .await
+        .with_context(|| {
+            format!(
+                "Failed to connect to database at '{}'.",
+                database_url.as_str()
+            )
+        })?;
+    Ok(database)
 }
 
 pub fn create_app(
-    database: Database,
+    database: DatabaseConnection,
 ) -> App<
     impl ServiceFactory<
         ServiceRequest,
@@ -48,7 +52,6 @@ pub async fn start_server(config: ServerConfig) -> Result<Never> {
     let hostname = hostname.as_ref();
     fs::create_dir_all(database_path.parent().unwrap())?;
     let database = open_or_initialize_database(&database_path).await?;
-    database.create_player("Alice").await?;
 
     let server = HttpServer::new(move || create_app(database.clone()));
 

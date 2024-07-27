@@ -1,15 +1,15 @@
-use crate::database::Database;
+use sea_orm::DatabaseConnection;
 
 pub struct State {
-    database: Database,
+    database: DatabaseConnection,
 }
 
 impl State {
-    pub fn new(database: Database) -> Self {
+    pub fn new(database: DatabaseConnection) -> Self {
         State { database }
     }
 
-    pub fn database(&self) -> &Database {
+    pub fn database(&self) -> &DatabaseConnection {
         &self.database
     }
 }

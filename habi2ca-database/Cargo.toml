@@ -1,0 +1,10 @@
+[package]
+name = "habi2ca-database"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+serde.workspace = true
+
+sea-orm.workspace = true
+sea-orm-migration.workspace = true
