@@ -4,9 +4,8 @@ mod frontend;
 mod utils;
 
 use anyhow::Result;
-use clap::{Parser, Subcommand};
-
 use backend::RunBackend;
+use clap::{Parser, Subcommand};
 use docker::Docker;
 use frontend::RunFrontend;
 

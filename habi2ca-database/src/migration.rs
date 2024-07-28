@@ -1,6 +1,5 @@
-use sea_orm_migration::{async_trait::async_trait, MigrationTrait};
-
 pub use sea_orm_migration::MigratorTrait;
+use sea_orm_migration::{async_trait::async_trait, MigrationTrait};
 
 mod m20240727_133538_initial;
 pub struct Migrator;

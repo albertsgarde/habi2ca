@@ -89,14 +89,14 @@ pub fn add_routes(scope: Scope) -> Scope {
 
 #[cfg(test)]
 mod tests {
-    use crate::{start::create_app, test};
-
     use actix_web::test::{self as actix_test, TestRequest};
     use habi2ca_database::{
         player::{self, PlayerId},
         prelude::Player,
     };
     use sea_orm::{ActiveValue, EntityTrait};
+
+    use crate::{start::create_app, test};
 
     #[tokio::test]
     async fn create_player() {
