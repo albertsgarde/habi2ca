@@ -8,3 +8,9 @@ serde.workspace = true
 
 sea-orm.workspace = true
 sea-orm-migration.workspace = true
+
+tokio = { workspace = true, optional = true}
+
+[[bin]]
+name = "migrate"
+required-features = ["tokio"]
