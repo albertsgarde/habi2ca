@@ -89,40 +89,21 @@ pub fn add_routes(scope: Scope) -> Scope {
 
 #[cfg(test)]
 mod tests {
-    use crate::start::create_app;
+    use crate::{start::create_app, test};
 
-    use actix_web::test::{self, TestRequest};
+    use actix_web::test::{self as actix_test, TestRequest};
     use habi2ca_database::{
         player::{self, PlayerId},
         prelude::Player,
     };
-    use sea_orm::{
-        ActiveValue, ConnectionTrait, Database, DatabaseConnection, EntityTrait, Schema,
-    };
-
-    async fn setup_database() -> DatabaseConnection {
-        let database = Database::connect("sqlite::memory:")
-            .await
-            .expect("Failed to connect to database.");
-        let schema = Schema::new(sea_orm::DatabaseBackend::Sqlite);
-        database
-            .execute(
-                database
-                    .get_database_backend()
-                    .build(&schema.create_table_from_entity(player::Entity)),
-            )
-            .await
-            .unwrap();
-
-        database
-    }
+    use sea_orm::{ActiveValue, EntityTrait};
 
     #[tokio::test]
     async fn create_player() {
-        let database = setup_database().await;
-        let app = test::init_service(create_app(database)).await;
+        let database = test::setup_database().await;
+        let app = actix_test::init_service(create_app(database)).await;
 
-        let player: player::Model = test::call_and_read_body_json(
+        let player: player::Model = actix_test::call_and_read_body_json(
             &app,
             TestRequest::post()
                 .uri("/api/players/?name=Alice")
@@ -138,7 +119,7 @@ mod tests {
 
     #[tokio::test]
     async fn get_player() {
-        let database = setup_database().await;
+        let database = test::setup_database().await;
         let player = player::ActiveModel {
             name: ActiveValue::Set("Alice".to_string()),
             xp: ActiveValue::Set(0.0),
@@ -149,9 +130,9 @@ mod tests {
             .await
             .unwrap();
 
-        let app = test::init_service(create_app(database)).await;
+        let app = actix_test::init_service(create_app(database)).await;
 
-        let resp: player::Model = test::call_and_read_body_json(
+        let resp: player::Model = actix_test::call_and_read_body_json(
             &app,
             TestRequest::get().uri("/api/players/1").to_request(),
         )
@@ -164,7 +145,7 @@ mod tests {
 
     #[tokio::test]
     async fn add_xp() {
-        let database = setup_database().await;
+        let database = test::setup_database().await;
         let player = player::ActiveModel {
             name: ActiveValue::Set("Alice".to_string()),
             xp: ActiveValue::Set(0.0),
@@ -175,13 +156,13 @@ mod tests {
             .await
             .unwrap();
 
-        let app = test::init_service(create_app(database)).await;
+        let app = actix_test::init_service(create_app(database)).await;
 
         let add_xp_req = TestRequest::patch()
             .uri("/api/players/1/add_xp?xp=10.0")
             .to_request();
 
-        let player: player::Model = test::call_and_read_body_json(
+        let player: player::Model = actix_test::call_and_read_body_json(
             &app,
             TestRequest::get().uri("/api/players/1").to_request(),
         )
@@ -191,7 +172,7 @@ mod tests {
         assert_eq!(player.name, "Alice");
         assert_eq!(player.xp, 0.0);
 
-        let player: player::Model = test::call_and_read_body_json(&app, add_xp_req).await;
+        let player: player::Model = actix_test::call_and_read_body_json(&app, add_xp_req).await;
 
         assert_eq!(player.id.0, 1);
         assert_eq!(player.name, "Alice");

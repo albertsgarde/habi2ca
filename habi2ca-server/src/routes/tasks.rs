@@ -130,39 +130,18 @@ pub fn add_routes(scope: Scope) -> Scope {
 
 #[cfg(test)]
 mod tests {
-    use actix_web::test::{self, TestRequest};
+    use actix_web::test::{self as actix_test, TestRequest};
     use habi2ca_database::{
         player::{self},
         prelude::Player,
         task,
     };
-    use sea_orm::{
-        ActiveValue, ConnectionTrait, Database, DatabaseConnection, EntityTrait, Schema,
-    };
+    use sea_orm::{ActiveValue, DatabaseConnection, EntityTrait};
 
-    use crate::{routes::tasks::TaskData, start::create_app};
+    use crate::{routes::tasks::TaskData, start::create_app, test};
 
     async fn setup_database() -> (DatabaseConnection, player::Model) {
-        let database = Database::connect("sqlite::memory:")
-            .await
-            .expect("Failed to connect to database.");
-        let schema = Schema::new(sea_orm::DatabaseBackend::Sqlite);
-        database
-            .execute(
-                database
-                    .get_database_backend()
-                    .build(&schema.create_table_from_entity(player::Entity)),
-            )
-            .await
-            .unwrap();
-        database
-            .execute(
-                database
-                    .get_database_backend()
-                    .build(&schema.create_table_from_entity(task::Entity)),
-            )
-            .await
-            .unwrap();
+        let database = test::setup_database().await;
 
         let player = Player::insert(player::ActiveModel {
             name: ActiveValue::Set("Alice".to_string()),
@@ -179,7 +158,7 @@ mod tests {
     #[tokio::test]
     async fn create_task() {
         let (database, player) = setup_database().await;
-        let app = test::init_service(create_app(database)).await;
+        let app = actix_test::init_service(create_app(database)).await;
 
         let request = TestRequest::post()
             .uri("/api/tasks")
@@ -190,14 +169,14 @@ mod tests {
                 completed: false,
             })
             .to_request();
-        let response = test::call_service(&app, request).await;
+        let response = actix_test::call_service(&app, request).await;
         println!("{response:?}");
         if !response.status().is_success() {
-            let body = test::read_body(response).await;
+            let body = actix_test::read_body(response).await;
 
             panic!("{}", std::str::from_utf8(&body).unwrap());
         } else {
-            let task: task::Model = test::read_body_json(response).await;
+            let task: task::Model = actix_test::read_body_json(response).await;
             println!("{task:?}");
             assert_eq!(task.id.0, 1);
             assert_eq!(task.player_id, player.id);
@@ -237,11 +216,13 @@ mod tests {
             .await
             .unwrap();
 
-        let app = test::init_service(create_app(database)).await;
+        let app = actix_test::init_service(create_app(database)).await;
 
-        let tasks: Vec<task::Model> =
-            test::call_and_read_body_json(&app, TestRequest::get().uri("/api/tasks").to_request())
-                .await;
+        let tasks: Vec<task::Model> = actix_test::call_and_read_body_json(
+            &app,
+            TestRequest::get().uri("/api/tasks").to_request(),
+        )
+        .await;
 
         assert_eq!(tasks.len(), 2);
         assert_eq!(tasks[0].id, task1.id);
@@ -292,9 +273,9 @@ mod tests {
         .await
         .unwrap();
 
-        let app = test::init_service(create_app(database)).await;
+        let app = actix_test::init_service(create_app(database)).await;
 
-        let tasks: Vec<task::Model> = test::call_and_read_body_json(
+        let tasks: Vec<task::Model> = actix_test::call_and_read_body_json(
             &app,
             TestRequest::get().uri("/api/tasks?player=2").to_request(),
         )
@@ -323,9 +304,9 @@ mod tests {
         .await
         .unwrap();
 
-        let app = test::init_service(create_app(database)).await;
+        let app = actix_test::init_service(create_app(database)).await;
 
-        let response_task: task::Model = test::call_and_read_body_json(
+        let response_task: task::Model = actix_test::call_and_read_body_json(
             &app,
             TestRequest::get().uri("/api/tasks/1").to_request(),
         )
@@ -354,9 +335,9 @@ mod tests {
         .await
         .unwrap();
 
-        let app = test::init_service(create_app(database)).await;
+        let app = actix_test::init_service(create_app(database)).await;
 
-        let response_task: task::Model = test::call_and_read_body_json(
+        let response_task: task::Model = actix_test::call_and_read_body_json(
             &app,
             TestRequest::patch()
                 .uri("/api/tasks/1/complete")

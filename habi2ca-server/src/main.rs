@@ -3,6 +3,9 @@ mod routes;
 mod start;
 mod state;
 
+#[cfg(test)]
+mod test;
+
 use std::process::Termination;
 
 use anyhow::Result;
