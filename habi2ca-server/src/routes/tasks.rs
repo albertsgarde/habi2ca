@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use actix_web::{
     get, patch, post,
@@ -7,10 +7,10 @@ use actix_web::{
 };
 use anyhow::Context;
 use habi2ca_database::{
-    player::PlayerId,
+    player::{self, PlayerId},
     task::{self, ActiveModel, TaskId},
 };
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::{routes::RouteError, state::State};
@@ -91,6 +91,23 @@ pub async fn get_task(
     Ok(web::Json(task))
 }
 
+#[derive(Debug)]
+struct DbError(anyhow::Error);
+
+impl Display for DbError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl std::error::Error for DbError {}
+
+impl From<anyhow::Error> for DbError {
+    fn from(error: anyhow::Error) -> Self {
+        Self(error)
+    }
+}
+
 #[patch("/{id}/complete")]
 pub async fn complete_task(
     state: web::Data<State>,
@@ -100,24 +117,56 @@ pub async fn complete_task(
         .match_info()
         .load()
         .context("Missing 'id' parameter")?;
-    let task = task::Entity::find_by_id(task_id)
-        .one(state.database())
-        .await
-        .with_context(|| format!("Failed to get task with id {task_id} from database."))?
-        .with_context(|| format!("No task with id {task_id} exists."))?;
-
-    if task.completed {
-        return Ok(web::Json(task));
-    }
 
     println!("Completing task with id {task_id}.");
-    let mut task: ActiveModel = task.into();
-    task.completed = sea_orm::ActiveValue::Set(true);
-    let task = task::Entity::update(task)
-        .exec(state.database())
+
+    Ok(state
+        .database()
+        .transaction::<_, web::Json<_>, DbError>(|txn| {
+            Box::pin(async move {
+                let task = task::Entity::find_by_id(task_id)
+                    .one(txn)
+                    .await
+                    .with_context(|| {
+                        format!("Failed to get task with id {task_id} from database.")
+                    })?
+                    .with_context(|| format!("No task with id {task_id} exists."))?;
+
+                if task.completed {
+                    return Ok(web::Json(task));
+                }
+                let mut task: ActiveModel = task.into();
+                task.completed = sea_orm::ActiveValue::Set(true);
+                let task = task::Entity::update(task)
+                    .exec(txn)
+                    .await
+                    .with_context(|| format!("Failed to update task with id {task_id}."))?;
+
+                let player = player::Entity::find_by_id(task.player_id)
+                    .one(txn)
+                    .await
+                    .with_context(|| {
+                        format!("Failed to get owner {} of task {}", task.player_id, task.id)
+                    })?
+                    .with_context(|| {
+                        format!(
+                            "Owner {} of task {} does not exist.",
+                            task.player_id, task.id
+                        )
+                    })?;
+                let prev_xp = player.xp;
+                let player_id = task.player_id;
+                let mut player: player::ActiveModel = player.into();
+                player.xp = sea_orm::ActiveValue::Set(prev_xp + 1.0);
+                let _player = player::Entity::update(player)
+                    .exec(txn)
+                    .await
+                    .with_context(|| format!("Failed to update player with id {player_id}."))?;
+                Ok(web::Json(task))
+            })
+        })
         .await
-        .with_context(|| format!("Failed to update task with id {task_id}."))?;
-    Ok(web::Json(task))
+        .context("Failed to complete transaction")?)
 }
 
 pub fn add_routes(scope: Scope) -> Scope {
@@ -338,5 +387,12 @@ mod tests {
         assert_eq!(response_task.name, "Task1");
         assert_eq!(response_task.description, "Description1");
         assert_eq!(response_task.completed, true);
+
+        let response_player: player::Model =
+            test::assert_ok_response(&app, TestRequest::get().uri("/api/players/1").to_request())
+                .await;
+
+        assert!(response_player.xp > player.xp);
+        assert_eq!(response_player.name, player.name);
     }
 }

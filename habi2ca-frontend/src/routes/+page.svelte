@@ -22,8 +22,8 @@
 >
 	Create Task
 </button>
-<p>Name: {player.data.name}</p>
-<p>XP: {player.data.xp}</p>
+<p>Name: {player.name}</p>
+<p>XP: {player.xp}</p>
 <button
 	on:click={async () =>
 		(player = await addXp(
@@ -31,16 +31,17 @@
 			player.id
 		))}>Add XP</button
 >
-{#each tasks as { id, data }}
-	{#if !data.completed}
+{#each tasks as { id, completed, name, description }}
+	{#if !completed}
 		<div class="task-card">
-			<h3>{data.name}</h3>
-			<p>{data.description}</p>
+			<h3>{name}</h3>
+			<p>{description}</p>
 			<button
 				on:click={async () => {
 					let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
-					await completeTask(originUrl, id);
-					tasks = await getTasks(originUrl, player.id);
+					let [_, updatedPlayer] = await completeTask(originUrl, id);
+					player = updatedPlayer;
+					tasks = await getTasks(originUrl, updatedPlayer.id);
 				}}>Complete</button
 			>
 		</div>

@@ -2,10 +2,8 @@ import { get } from "svelte/store";
 
 export type Player = {
     id: number;
-    data: {
-        name: string;
-        xp: number;
-    };
+    name: string;
+    xp: number;
 }
 
 export async function addXp(origin: URL, playerId: number): Promise<Player> {
