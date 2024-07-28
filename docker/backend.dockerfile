@@ -3,10 +3,7 @@ FROM lukemathwalker/cargo-chef:0.1.67-rust-1.79-slim-buster AS planner
 # This container only exists to run 'cargo chef prepare' which sets up 'recipe.json' for the next stage.
 
 WORKDIR /habi2ca
-COPY Cargo.toml Cargo.lock .
-COPY habi2ca-ops habi2ca-ops
-COPY habi2ca-server habi2ca-server
-COPY habi2ca-common habi2ca-common
+COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 
@@ -21,11 +18,10 @@ RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY Cargo.toml Cargo.lock .
 COPY habi2ca-server habi2ca-server
-COPY habi2ca-common habi2ca-common
+COPY habi2ca-database habi2ca-database
 
 # Build backend binary
 RUN cargo build --release --bin habi2ca-server
-
 
 # Our final base
 FROM debian:buster-slim AS backend-prod
