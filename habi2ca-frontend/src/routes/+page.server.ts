@@ -15,12 +15,12 @@ export async function load(): Promise<{ player: Player, tasks: Task[] }> {
 
 
     if (!playerResponse.ok) {
-        error(500, "Failed to fetch player data: " + playerResponse.text());
+        error(500, "Failed to fetch player data: " + await playerResponse.text());
     }
     const playerJsonPromise = playerResponse.json();
 
     if (!tasksResponse.ok) {
-        error(500, "Failed to fetch player tasks: " + tasksResponse.text());
+        error(500, "Failed to fetch player tasks: " + await tasksResponse.text());
     }
     const tasksJsonPromise = tasksResponse.json();
 
