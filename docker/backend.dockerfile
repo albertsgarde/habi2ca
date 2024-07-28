@@ -25,7 +25,7 @@ RUN cargo build --release --bin habi2ca-server
 
 # Our final base
 FROM debian:buster-slim AS backend-prod
-ENV DATABASE_PATH=/habi2ca/habi2ca.db
+ENV DATABASE_PATH=/habi2ca/db/data.db
 ENV PORT=8080
 
 WORKDIR /habi2ca

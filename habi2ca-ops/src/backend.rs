@@ -5,7 +5,7 @@ use clap::Args;
 
 #[derive(Args, Debug, Clone)]
 pub struct RunBackend {
-    #[arg(default_value = "./local/data.db")]
+    #[arg(default_value = "./local/data/data.db")]
     database_path: String,
     #[arg(default_value = "localhost")]
     hostname: String,
