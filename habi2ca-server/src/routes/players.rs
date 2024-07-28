@@ -103,7 +103,7 @@ mod tests {
         let database = test::setup_database().await;
         let app = actix_test::init_service(create_app(database)).await;
 
-        let player: player::Model = actix_test::call_and_read_body_json(
+        let player: player::Model = test::assert_ok_response(
             &app,
             TestRequest::post()
                 .uri("/api/players/?name=Alice")
@@ -132,11 +132,9 @@ mod tests {
 
         let app = actix_test::init_service(create_app(database)).await;
 
-        let resp: player::Model = actix_test::call_and_read_body_json(
-            &app,
-            TestRequest::get().uri("/api/players/1").to_request(),
-        )
-        .await;
+        let resp: player::Model =
+            test::assert_ok_response(&app, TestRequest::get().uri("/api/players/1").to_request())
+                .await;
 
         assert_eq!(resp.id.0, 1);
         assert_eq!(resp.name, "Alice");
@@ -162,17 +160,15 @@ mod tests {
             .uri("/api/players/1/add_xp?xp=10.0")
             .to_request();
 
-        let player: player::Model = actix_test::call_and_read_body_json(
-            &app,
-            TestRequest::get().uri("/api/players/1").to_request(),
-        )
-        .await;
+        let player: player::Model =
+            test::assert_ok_response(&app, TestRequest::get().uri("/api/players/1").to_request())
+                .await;
 
         assert_eq!(player.id.0, 1);
         assert_eq!(player.name, "Alice");
         assert_eq!(player.xp, 0.0);
 
-        let player: player::Model = actix_test::call_and_read_body_json(&app, add_xp_req).await;
+        let player: player::Model = test::assert_ok_response(&app, add_xp_req).await;
 
         assert_eq!(player.id.0, 1);
         assert_eq!(player.name, "Alice");

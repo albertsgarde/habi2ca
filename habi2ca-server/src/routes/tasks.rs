@@ -169,21 +169,13 @@ mod tests {
                 completed: false,
             })
             .to_request();
-        let response = actix_test::call_service(&app, request).await;
-        println!("{response:?}");
-        if !response.status().is_success() {
-            let body = actix_test::read_body(response).await;
-
-            panic!("{}", std::str::from_utf8(&body).unwrap());
-        } else {
-            let task: task::Model = actix_test::read_body_json(response).await;
-            println!("{task:?}");
-            assert_eq!(task.id.0, 1);
-            assert_eq!(task.player_id, player.id);
-            assert_eq!(task.name, "Task1");
-            assert_eq!(task.description, "Description1");
-            assert_eq!(task.completed, false);
-        }
+        let task: task::Model = test::assert_ok_response(&app, request).await;
+        println!("{task:?}");
+        assert_eq!(task.id.0, 1);
+        assert_eq!(task.player_id, player.id);
+        assert_eq!(task.name, "Task1");
+        assert_eq!(task.description, "Description1");
+        assert_eq!(task.completed, false);
     }
 
     #[tokio::test]
@@ -218,11 +210,8 @@ mod tests {
 
         let app = actix_test::init_service(create_app(database)).await;
 
-        let tasks: Vec<task::Model> = actix_test::call_and_read_body_json(
-            &app,
-            TestRequest::get().uri("/api/tasks").to_request(),
-        )
-        .await;
+        let tasks: Vec<task::Model> =
+            test::assert_ok_response(&app, TestRequest::get().uri("/api/tasks").to_request()).await;
 
         assert_eq!(tasks.len(), 2);
         assert_eq!(tasks[0].id, task1.id);
@@ -275,7 +264,7 @@ mod tests {
 
         let app = actix_test::init_service(create_app(database)).await;
 
-        let tasks: Vec<task::Model> = actix_test::call_and_read_body_json(
+        let tasks: Vec<task::Model> = test::assert_ok_response(
             &app,
             TestRequest::get().uri("/api/tasks?player=2").to_request(),
         )
@@ -306,11 +295,9 @@ mod tests {
 
         let app = actix_test::init_service(create_app(database)).await;
 
-        let response_task: task::Model = actix_test::call_and_read_body_json(
-            &app,
-            TestRequest::get().uri("/api/tasks/1").to_request(),
-        )
-        .await;
+        let response_task: task::Model =
+            test::assert_ok_response(&app, TestRequest::get().uri("/api/tasks/1").to_request())
+                .await;
 
         println!("{response_task:?}");
         assert_eq!(response_task.id.0, 1);
@@ -337,7 +324,7 @@ mod tests {
 
         let app = actix_test::init_service(create_app(database)).await;
 
-        let response_task: task::Model = actix_test::call_and_read_body_json(
+        let response_task: task::Model = test::assert_ok_response(
             &app,
             TestRequest::patch()
                 .uri("/api/tasks/1/complete")
