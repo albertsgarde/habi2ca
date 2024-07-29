@@ -187,10 +187,10 @@ mod tests {
     };
     use sea_orm::{ActiveValue, DatabaseConnection, EntityTrait};
 
-    use crate::{routes::tasks::TaskData, start::create_app, test};
+    use crate::{routes::tasks::TaskData, start::create_app, test_utils};
 
     async fn setup_database() -> (DatabaseConnection, player::Model) {
-        let database = test::setup_database().await;
+        let database = test_utils::setup_database().await;
 
         let player = Player::insert(player::ActiveModel {
             name: ActiveValue::Set("Alice".to_string()),
@@ -218,7 +218,7 @@ mod tests {
                 completed: false,
             })
             .to_request();
-        let task: task::Model = test::assert_ok_response(&app, request).await;
+        let task: task::Model = test_utils::assert_ok_response(&app, request).await;
         println!("{task:?}");
         assert_eq!(task.id.0, 1);
         assert_eq!(task.player_id, player.id);
@@ -260,7 +260,8 @@ mod tests {
         let app = actix_test::init_service(create_app(database)).await;
 
         let tasks: Vec<task::Model> =
-            test::assert_ok_response(&app, TestRequest::get().uri("/api/tasks").to_request()).await;
+            test_utils::assert_ok_response(&app, TestRequest::get().uri("/api/tasks").to_request())
+                .await;
 
         assert_eq!(tasks.len(), 2);
         assert_eq!(tasks[0].id, task1.id);
@@ -313,7 +314,7 @@ mod tests {
 
         let app = actix_test::init_service(create_app(database)).await;
 
-        let tasks: Vec<task::Model> = test::assert_ok_response(
+        let tasks: Vec<task::Model> = test_utils::assert_ok_response(
             &app,
             TestRequest::get().uri("/api/tasks?player=2").to_request(),
         )
@@ -344,9 +345,11 @@ mod tests {
 
         let app = actix_test::init_service(create_app(database)).await;
 
-        let response_task: task::Model =
-            test::assert_ok_response(&app, TestRequest::get().uri("/api/tasks/1").to_request())
-                .await;
+        let response_task: task::Model = test_utils::assert_ok_response(
+            &app,
+            TestRequest::get().uri("/api/tasks/1").to_request(),
+        )
+        .await;
 
         println!("{response_task:?}");
         assert_eq!(response_task.id.0, 1);
@@ -373,7 +376,7 @@ mod tests {
 
         let app = actix_test::init_service(create_app(database)).await;
 
-        let response_task: task::Model = test::assert_ok_response(
+        let response_task: task::Model = test_utils::assert_ok_response(
             &app,
             TestRequest::patch()
                 .uri("/api/tasks/1/complete")
@@ -388,9 +391,11 @@ mod tests {
         assert_eq!(response_task.description, "Description1");
         assert_eq!(response_task.completed, true);
 
-        let response_player: player::Model =
-            test::assert_ok_response(&app, TestRequest::get().uri("/api/players/1").to_request())
-                .await;
+        let response_player: player::Model = test_utils::assert_ok_response(
+            &app,
+            TestRequest::get().uri("/api/players/1").to_request(),
+        )
+        .await;
 
         assert!(response_player.xp > player.xp);
         assert_eq!(response_player.name, player.name);

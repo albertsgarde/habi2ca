@@ -1,9 +1,9 @@
 [alias]
-t = "nextest run"
 ops = "run --bin habi2ca-ops"
 backend = "ops backend"
 frontend = "ops frontend"
 docker = "ops docker"
+t = "ops test"
 migrate = "run --bin migrate --features=tokio --"
 o = "ops"
 b = "backend"

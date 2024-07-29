@@ -6,6 +6,9 @@ members = [
 ]
 resolver = "2"
 
+[workspace.lints.clippy]
+bool_assert_comparison = "allow"
+
 [workspace.dependencies]
 anyhow = "1.0.86"
 thiserror = "1.0.61"

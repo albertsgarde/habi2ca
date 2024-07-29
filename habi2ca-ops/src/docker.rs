@@ -48,7 +48,7 @@ impl Build {
 
         command
             .spawn()
-            .with_context(|| format!("Failed to build docker containers."))?
+            .context("Failed to build docker containers.")?
             .wait()?;
         Ok(())
     }
@@ -72,7 +72,7 @@ impl Up {
 
         command
             .spawn()
-            .with_context(|| format!("Failed to start docker containers."))?
+            .context("Failed to start docker containers.")?
             .wait()?;
         Ok(())
     }
@@ -93,28 +93,28 @@ impl Publish {
         command.args(["tag", "habi2ca-backend", backend_image.as_str()]);
         command
             .spawn()
-            .with_context(|| format!("Failed to tag backend docker container."))?
+            .context("Failed to tag backend docker container.")?
             .wait()?;
 
         let mut command = Command::new("docker");
         command.args(["tag", "habi2ca-frontend", frontend_image.as_str()]);
         command
             .spawn()
-            .with_context(|| format!("Failed to tag frontend docker container."))?
+            .context("Failed to tag frontend docker container.")?
             .wait()?;
 
         let mut command = Command::new("docker");
         command.args(["push", backend_image.as_str()]);
         command
             .spawn()
-            .with_context(|| format!("Failed to push backend docker container."))?
+            .context("Failed to push backend docker container.")?
             .wait()?;
 
         let mut command = Command::new("docker");
         command.args(["push", frontend_image.as_str()]);
         command
             .spawn()
-            .with_context(|| format!("Failed to push frontend docker container."))?
+            .context("Failed to push frontend docker container.")?
             .wait()?;
         Ok(())
     }

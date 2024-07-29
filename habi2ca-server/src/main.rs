@@ -4,7 +4,7 @@ mod start;
 mod state;
 
 #[cfg(test)]
-mod test;
+mod test_utils;
 
 use std::process::Termination;
 

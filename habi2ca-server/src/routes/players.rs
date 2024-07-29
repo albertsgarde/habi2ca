@@ -96,14 +96,14 @@ mod tests {
     };
     use sea_orm::{ActiveValue, EntityTrait};
 
-    use crate::{start::create_app, test};
+    use crate::{start::create_app, test_utils};
 
     #[tokio::test]
     async fn create_player() {
-        let database = test::setup_database().await;
+        let database = test_utils::setup_database().await;
         let app = actix_test::init_service(create_app(database)).await;
 
-        let player: player::Model = test::assert_ok_response(
+        let player: player::Model = test_utils::assert_ok_response(
             &app,
             TestRequest::post()
                 .uri("/api/players/?name=Alice")
@@ -119,7 +119,7 @@ mod tests {
 
     #[tokio::test]
     async fn get_player() {
-        let database = test::setup_database().await;
+        let database = test_utils::setup_database().await;
         let player = player::ActiveModel {
             name: ActiveValue::Set("Alice".to_string()),
             xp: ActiveValue::Set(0.0),
@@ -132,9 +132,11 @@ mod tests {
 
         let app = actix_test::init_service(create_app(database)).await;
 
-        let resp: player::Model =
-            test::assert_ok_response(&app, TestRequest::get().uri("/api/players/1").to_request())
-                .await;
+        let resp: player::Model = test_utils::assert_ok_response(
+            &app,
+            TestRequest::get().uri("/api/players/1").to_request(),
+        )
+        .await;
 
         assert_eq!(resp.id.0, 1);
         assert_eq!(resp.name, "Alice");
@@ -143,7 +145,7 @@ mod tests {
 
     #[tokio::test]
     async fn add_xp() {
-        let database = test::setup_database().await;
+        let database = test_utils::setup_database().await;
         let player = player::ActiveModel {
             name: ActiveValue::Set("Alice".to_string()),
             xp: ActiveValue::Set(0.0),
@@ -160,15 +162,17 @@ mod tests {
             .uri("/api/players/1/add_xp?xp=10.0")
             .to_request();
 
-        let player: player::Model =
-            test::assert_ok_response(&app, TestRequest::get().uri("/api/players/1").to_request())
-                .await;
+        let player: player::Model = test_utils::assert_ok_response(
+            &app,
+            TestRequest::get().uri("/api/players/1").to_request(),
+        )
+        .await;
 
         assert_eq!(player.id.0, 1);
         assert_eq!(player.name, "Alice");
         assert_eq!(player.xp, 0.0);
 
-        let player: player::Model = test::assert_ok_response(&app, add_xp_req).await;
+        let player: player::Model = test_utils::assert_ok_response(&app, add_xp_req).await;
 
         assert_eq!(player.id.0, 1);
         assert_eq!(player.name, "Alice");

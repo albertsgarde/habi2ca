@@ -3,6 +3,9 @@ name = "habi2ca-server"
 version = "0.0.0"
 edition = "2021"
 
+[lints]
+workspace = true
+
 [dependencies]
 habi2ca-database = { version = "0.0.0", path = "../habi2ca-database"}
 
