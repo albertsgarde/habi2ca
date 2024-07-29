@@ -41,6 +41,12 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Task::PlayerId).integer().not_null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_player_id")
+                            .from(Task::Table, Task::PlayerId)
+                            .to(Player::Table, Player::Id),
+                    )
                     .col(ColumnDef::new(Task::Name).string().not_null())
                     .col(ColumnDef::new(Task::Description).string().not_null())
                     .col(ColumnDef::new(Task::Completed).boolean().not_null())
@@ -51,11 +57,12 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Player::Table).to_owned())
+            .drop_table(Table::drop().table(Task::Table).to_owned())
             .await?;
         manager
-            .drop_table(Table::drop().table(Task::Table).to_owned())
-            .await
+            .drop_table(Table::drop().table(Player::Table).to_owned())
+            .await?;
+        Ok(())
     }
 }
 
