@@ -52,7 +52,20 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Task::Completed).boolean().not_null())
                     .to_owned(),
             )
-            .await
+            .await?;
+
+        let insert = Query::insert()
+            .into_table(Player::Table)
+            .columns([Player::Name, Player::Xp])
+            .values([
+                SimpleExpr::Value(Value::String(Some(Box::new("Alice".to_owned())))),
+                SimpleExpr::Value(Value::Double(Some(0.))),
+            ])
+            .expect("Error in insert query.")
+            .to_owned();
+        manager.exec_stmt(insert).await?;
+
+        Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
