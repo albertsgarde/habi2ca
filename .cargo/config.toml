@@ -1,5 +1,5 @@
 [alias]
-ops = "run --bin habi2ca-ops"
+ops = "run  --package habi2ca-ops --bin habi2ca-ops"
 backend = "ops backend"
 frontend = "ops frontend"
 docker = "ops docker"
