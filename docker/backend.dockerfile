@@ -19,6 +19,7 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY Cargo.toml Cargo.lock .
 COPY habi2ca-server habi2ca-server
 COPY habi2ca-database habi2ca-database
+COPY gamedata gamedata
 
 # Build backend binary
 RUN cargo build --release --bin habi2ca-server
