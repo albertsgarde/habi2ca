@@ -26,19 +26,6 @@ async fn setup_player_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
         )
         .await?;
 
-    manager
-        .exec_stmt(
-            Query::insert()
-                .into_table(Player::Table)
-                .columns([Player::Name, Player::Xp])
-                .values([
-                    SimpleExpr::Value(Value::String(Some(Box::new("Alice".to_owned())))),
-                    SimpleExpr::Value(Value::Double(Some(0.))),
-                ])
-                .expect("Error in insert query.")
-                .to_owned(),
-        )
-        .await?;
     Ok(())
 }
 
