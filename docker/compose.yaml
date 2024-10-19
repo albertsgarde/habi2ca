@@ -1,29 +1,30 @@
+---
 services:
-  backend:
-    container_name: habi2ca-backend
-    pull_policy: build
-    build:
-      context: ..
-      dockerfile: docker/backend.dockerfile
-      target: backend-prod
-    image: habi2ca-backend
-    volumes:
-      - ../${DB_DIR?database path}:/habi2ca/db/
-    ports:
-      - 8080:8080
-  frontend:
-    container_name: habi2ca-frontend
-    pull_policy: build
-    build:
-     context: ..
-     dockerfile: docker/frontend.dockerfile
-     target: frontend-prod
-    image: habi2ca-frontend
-    ports:
-      - 3000:3000
-    environment:
-      - BACKEND_ORIGIN=http://backend:8080
+    backend:
+        container_name: habi2ca-backend
+        pull_policy: build
+        build:
+            context: ..
+            dockerfile: docker/backend.dockerfile
+            target: backend-prod
+        image: habi2ca-backend
+        volumes:
+            - ../${DB_DIR?database path}:/habi2ca/db/
+        ports:
+            - 8080:8080
+    frontend:
+        container_name: habi2ca-frontend
+        pull_policy: build
+        build:
+            context: ..
+            dockerfile: docker/frontend.dockerfile
+            target: frontend-prod
+        image: habi2ca-frontend
+        ports:
+            - 3000:3000
+        environment:
+            - BACKEND_ORIGIN=http://backend:8080
 
 networks:
-  app-network:
-    driver: bridge
+    app-network:
+        driver: bridge

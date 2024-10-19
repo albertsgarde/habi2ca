@@ -7,13 +7,10 @@ edition = "2021"
 workspace = true
 
 [dependencies]
+tokio = {workspace = true, optional = true}
 serde.workspace = true
-
 sea-orm.workspace = true
 sea-orm-migration.workspace = true
-
-tokio = { workspace = true, optional = true}
-
 serde_json.workspace = true
 
 [[bin]]

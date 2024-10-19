@@ -7,8 +7,7 @@ edition = "2021"
 workspace = true
 
 [dependencies]
-habi2ca-database = { version = "0.0.0", path = "../habi2ca-database"}
-
+habi2ca-database = {version = "0.0.0", path = "../habi2ca-database"}
 actix-web.workspace = true
 actix-service.workspace = true
 actix-http.workspace = true
@@ -20,5 +19,4 @@ serde_json.workspace = true
 actix-files.workspace = true
 clap.workspace = true
 env_logger.workspace = true
-
 sea-orm.workspace = true
