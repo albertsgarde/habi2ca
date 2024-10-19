@@ -56,7 +56,6 @@ pub async fn add_xp(
         .load()
         .context("Missing 'id' parameter")?;
     let &xp_delta = query.get("xp").context("Missing 'xp' parameter")?;
-    println!("Adding {xp_delta} to player with id {player_id}.");
 
     let player = player::Entity::find_by_id(player_id)
         .one(state.database())
