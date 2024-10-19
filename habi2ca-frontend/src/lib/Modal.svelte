@@ -1,5 +1,6 @@
 <script lang="ts">
 	export let showModal: boolean; // boolean
+	export let closeButtonText: string; // string
 
 	let dialog: HTMLDialogElement; // HTMLDialogElement
 
@@ -23,7 +24,7 @@
 		<slot />
 		<hr />
 		<!-- svelte-ignore a11y-autofocus -->
-		<button autofocus on:click={() => dialog.close()}>close modal</button>
+		<button autofocus on:click={() => dialog.close()}>{closeButtonText}</button>
 	</div>
 </dialog>
 

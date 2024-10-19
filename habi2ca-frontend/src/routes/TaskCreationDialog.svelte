@@ -10,15 +10,15 @@
 
 	let dialog: Modal; // HTMLDialogElement
 
-	let taskName: string;
-	let taskDescription: string;
+	let taskName: string = '';
+	let taskDescription: string = '';
 
 	export function close() {
 		dialog.close();
 	}
 </script>
 
-<Modal bind:this={dialog} bind:showModal>
+<Modal bind:this={dialog} bind:showModal closeButtonText="Cancel">
 	<h2 slot="header">Create Task</h2>
 	<form
 		on:submit|preventDefault={async () => {
