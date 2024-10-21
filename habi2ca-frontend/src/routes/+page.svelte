@@ -1,15 +1,25 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { BACKEND_ORIGIN } from '$lib/base';
+	import { BACKEND_ORIGIN, expect, fetchJson, origin } from '$lib/base';
 	import Title from '$lib/Title.svelte';
+	import PlayerCreationDialog from './PlayerCreationDialog.svelte';
 	import type { PlayerInfo } from './playerInfo';
 
 	export let data: { players: PlayerInfo[] };
 
-	const playerInfos = data.players;
+	$: playerInfos = data.players;
+
+	let showCreatePlayerDialog = false;
+	let createPlayerDialog: PlayerCreationDialog;
 </script>
 
 <Title />
+
+<button
+	on:click={() => {
+		showCreatePlayerDialog = true;
+	}}>Create Player</button
+>
 
 {#each playerInfos as { player, numTasks }}
 	<div>
@@ -21,3 +31,11 @@
 		<p>Number of tasks: {numTasks}</p>
 	</div>
 {/each}
+
+<PlayerCreationDialog
+	bind:this={createPlayerDialog}
+	bind:showModal={showCreatePlayerDialog}
+	update={async (newPlayerInfo) => {
+		playerInfos = [...playerInfos, newPlayerInfo];
+	}}
+></PlayerCreationDialog>
