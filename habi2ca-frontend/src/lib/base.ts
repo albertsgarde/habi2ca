@@ -20,7 +20,7 @@ export const origin = {
     }
 };
 
-export async function fetch_json<T>(url: string, errorMessage: string): Promise<T> {
+export async function fetchJson<T>(url: string, errorMessage: string): Promise<T> {
     return fetch(url).then(async (res) => {
         if (!res.ok) {
             console.log(res);

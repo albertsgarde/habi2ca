@@ -2,6 +2,7 @@
 	import { expect, origin } from '$lib/base';
 	import { addXp, type Player } from '$lib/player';
 	import { completeTask, getTasks, type Task } from '$lib/task';
+	import Title from '$lib/Title.svelte';
 	import TaskCreationDialog from './TaskCreationDialog.svelte';
 
 	export let data: { player: Player; tasks: Task[] };
@@ -13,7 +14,7 @@
 	let createTaskDialog: TaskCreationDialog;
 </script>
 
-<h1>Habi2ca</h1>
+<Title />
 
 <button
 	on:click={async () => {

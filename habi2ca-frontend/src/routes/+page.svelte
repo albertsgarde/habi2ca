@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { BACKEND_ORIGIN } from '$lib/base';
+	import Title from '$lib/Title.svelte';
 	import type { PlayerInfo } from './playerInfo';
 
 	export let data: { players: PlayerInfo[] };
@@ -8,7 +9,7 @@
 	const playerInfos = data.players;
 </script>
 
-<h1>Habi2ca</h1>
+<Title />
 
 {#each playerInfos as { player, numTasks }}
 	<div>
