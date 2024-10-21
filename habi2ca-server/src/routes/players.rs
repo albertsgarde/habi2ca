@@ -7,6 +7,16 @@ use sea_orm::{ActiveModelTrait, ActiveValue, EntityTrait};
 
 use crate::{routes::RouteError, state::State};
 
+#[get("")]
+pub async fn get_players(state: web::Data<State>) -> Result<impl Responder, RouteError> {
+    let players = player::Entity::find()
+        .all(state.database())
+        .await
+        .context("Failed to get players from database.")?;
+
+    Ok(web::Json(players))
+}
+
 #[post("")]
 pub async fn create_player(
     state: web::Data<State>,
@@ -81,6 +91,7 @@ pub async fn add_xp(
 
 pub fn add_routes(scope: Scope) -> Scope {
     scope
+        .service(get_players)
         .service(get_player)
         .service(create_player)
         .service(add_xp)
@@ -96,6 +107,49 @@ mod tests {
     use sea_orm::{ActiveValue, EntityTrait};
 
     use crate::{start::create_app, test_utils};
+
+    #[tokio::test]
+    async fn get_players() {
+        let database = test_utils::setup_database().await;
+        let app = actix_test::init_service(create_app(database)).await;
+
+        let players: Vec<player::Model> = test_utils::assert_ok_response(
+            &app,
+            TestRequest::get().uri("/api/players").to_request(),
+        )
+        .await;
+
+        assert!(players.is_empty());
+
+        let player_alice: player::Model = test_utils::assert_ok_response(
+            &app,
+            TestRequest::post()
+                .uri("/api/players/?name=Alice")
+                .to_request(),
+        )
+        .await;
+
+        let player_bob: player::Model = test_utils::assert_ok_response(
+            &app,
+            TestRequest::post()
+                .uri("/api/players/?name=Bob")
+                .to_request(),
+        )
+        .await;
+
+        let mut players: Vec<player::Model> = test_utils::assert_ok_response(
+            &app,
+            TestRequest::get().uri("/api/players").to_request(),
+        )
+        .await;
+
+        // This might automatically be the case, but we want to be sure to avoid flakiness.
+        players.sort_by_key(|player| player.id.0);
+
+        assert_eq!(players.len(), 2);
+        assert_eq!(players[0], player_alice);
+        assert_eq!(players[1], player_bob);
+    }
 
     #[tokio::test]
     async fn create_player() {

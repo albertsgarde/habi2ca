@@ -1,58 +1,41 @@
 <script lang="ts">
-	import { expect, origin } from '$lib/base';
-	import { addXp, type Player } from '$lib/player';
-	import { completeTask, getTasks, type Task } from '$lib/task';
-	import TaskCreationDialog from './TaskCreationDialog.svelte';
+	import { goto } from '$app/navigation';
+	import { BACKEND_ORIGIN, expect, fetchJson, origin } from '$lib/base';
+	import Title from '$lib/Title.svelte';
+	import PlayerCreationDialog from './PlayerCreationDialog.svelte';
+	import type { PlayerInfo } from './playerInfo';
 
-	export let data: { player: Player; tasks: Task[] };
+	export let data: { players: PlayerInfo[] };
 
-	$: player = data.player;
-	$: tasks = data.tasks;
+	$: playerInfos = data.players;
 
-	let showCreateTaskDialog = false;
-	let createTaskDialog: TaskCreationDialog;
+	let showCreatePlayerDialog = false;
+	let createPlayerDialog: PlayerCreationDialog;
 </script>
 
-<h1>Habi2ca</h1>
+<Title />
 
 <button
-	on:click={async () => {
-		showCreateTaskDialog = true;
-	}}
+	on:click={() => {
+		showCreatePlayerDialog = true;
+	}}>Create Player</button
 >
-	Create Task
-</button>
-<p>Name: {player.name}</p>
-<p>XP: {player.xp}</p>
-<button
-	on:click={async () =>
-		(player = await addXp(
-			expect($origin, 'apiOrigin should exist once page is loaded.'),
-			player.id
-		))}>Add XP</button
->
-{#each tasks as { id, completed, name, description }}
-	{#if !completed}
-		<div class="task-card">
-			<h3>{name}</h3>
-			<p>{description}</p>
-			<button
-				on:click={async () => {
-					let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
-					let [_, updatedPlayer] = await completeTask(originUrl, id);
-					player = updatedPlayer;
-					tasks = await getTasks(originUrl, updatedPlayer.id);
-				}}>Complete</button
-			>
-		</div>
-	{/if}
+
+{#each playerInfos as { player, numTasks }}
+	<div>
+		<h2>
+			{player.name}
+			<button on:click={() => goto(`/player/${player.id}`)}>Play!</button>
+		</h2>
+		<p>XP: {player.xp}</p>
+		<p>Number of tasks: {numTasks}</p>
+	</div>
 {/each}
-<TaskCreationDialog
-	bind:this={createTaskDialog}
-	bind:showModal={showCreateTaskDialog}
-	playerId={player.id}
-	update={async () => {
-		let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
-		tasks = await getTasks(originUrl, player.id);
+
+<PlayerCreationDialog
+	bind:this={createPlayerDialog}
+	bind:showModal={showCreatePlayerDialog}
+	update={async (newPlayerInfo) => {
+		playerInfos = [...playerInfos, newPlayerInfo];
 	}}
-></TaskCreationDialog>
+></PlayerCreationDialog>
