@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { BACKEND_ORIGIN, expect, fetchJson, origin } from '$lib/base';
 	import Title from '$lib/Title.svelte';
 	import PlayerCreationDialog from './PlayerCreationDialog.svelte';
 	import type { PlayerInfo } from './playerInfo';

@@ -31,7 +31,22 @@ impl Test {
 
         let mut command = Command::new(env!("CARGO"));
         command.args(["nextest", "run"]).current_dir(workspace_dir);
-        command.spawn().context("Failed to run tests.")?.wait()?;
+        let status = command.spawn().context("Failed to run tests.")?.wait()?;
+        if !status.success() {
+            bail!("Some tests failed.");
+        }
+
+        let mut command = Command::new("npm");
+        command
+            .args(["run", "check-all"])
+            .current_dir(workspace_dir.join("habi2ca-frontend"));
+        let status = command
+            .spawn()
+            .context("Failed to run frontend checks.")?
+            .wait()?;
+        if !status.success() {
+            bail!("Some frontend checks failed.");
+        }
         Ok(())
     }
 }

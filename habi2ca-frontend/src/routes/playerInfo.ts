@@ -1,6 +1,6 @@
-import type { Player } from "$lib/player";
+import type { Player } from '$lib/player';
 
 export type PlayerInfo = {
-    player: Player;
-    numTasks: number;
-}
+	player: Player;
+	numTasks: number;
+};

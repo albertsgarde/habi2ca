@@ -1,3 +1,6 @@
+<script lang="ts">
+</script>
+
 <h1><a href="/">Habi2ca</a></h1>
 
 <style>
