@@ -12,8 +12,7 @@
 		"lint": "eslint .",
 		"format": "prettier --write .",
 		"svelte-check": "svelte-check --tsconfig ./tsconfig.json",
-		"check-all": "npm run check && npm run lint && npm run format && npm run test",
-		"prepare": "playwright install"
+		"check-all": "npm run check && npm run lint && npm run format && npm run test"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.28.1",
