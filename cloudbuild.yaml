@@ -22,3 +22,6 @@ steps:
           --container=habi2ca-backend, --image=gcr.io/habi2ca-429416/habi2ca-backend,
             --set-env-vars=DATABASE_PATH=/database/data.db,
             '--add-volume-mount=volume=database,mount-path=/database']
+logsBucket: 'gs://habi2ca-logs'
+options:
+    logging: GCS_ONLY
