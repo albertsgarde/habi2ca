@@ -15,14 +15,14 @@ steps:
     - name: gcr.io/google.com/cloudsdktool/cloud-sdk
       entrypoint: gcloud
       args: [run, deploy, habi2ca-cd, --region=europe-west4, --service-account=habi2ca@habi2ca-429416.iam.gserviceaccount.com,
-          '--add-volume=name=database,type=cloud-storage,bucket=habi2ca-database',
+          --add-volume=name=database,type=cloud-storage,bucket=habi2ca-database,
           --container=habi2ca-frontend, --image=gcr.io/habi2ca-429416/habi2ca-frontend, --port=3000,
             --set-env-vars=BACKEND_ORIGIN=http://localhost:8080,
             --depends-on=habi2ca-backend,
           --container=habi2ca-backend, --image=gcr.io/habi2ca-429416/habi2ca-backend,
             --set-env-vars=DATABASE_PATH=/database/data.db,
-            '--add-volume-mount=volume=database,mount-path=/database']
-logsBucket: 'gs://habi2ca-logs'
-serviceAccount: 'projects/habi2ca-429416/serviceAccounts/habi2ca@habi2ca-429416.iam.gserviceaccount.com'
+            --add-volume-mount=volume=database,mount-path=/database]
+logsBucket: gs://habi2ca-logs
+serviceAccount: projects/habi2ca-429416/serviceAccounts/habi2ca@habi2ca-429416.iam.gserviceaccount.com
 options:
     logging: GCS_ONLY
