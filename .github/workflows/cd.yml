@@ -7,7 +7,7 @@ on:       # yamllint disable-line rule:truthy
             - ci-test
 
 jobs:
-    ci:
+    cd:
         runs-on: ubuntu-latest
         steps:
             - name: Check out repository
