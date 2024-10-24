@@ -23,9 +23,9 @@ jobs:
               uses: google-github-actions/setup-gcloud@v2
 
             - name: Authorize service account
-              run: >
-                  gcloud auth activate-service-account
-                  --key-file=$(echo ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} | base64 -d)
+              run: |
+                  echo ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} | base64 -d > /tmp/key.json
+                  gcloud auth activate-service-account --key-file=/tmp/key.json
 
             - name: Build and submit
               run: gcloud builds submit
