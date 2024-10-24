@@ -23,5 +23,6 @@ steps:
             --set-env-vars=DATABASE_PATH=/database/data.db,
             '--add-volume-mount=volume=database,mount-path=/database']
 logsBucket: 'gs://habi2ca-logs'
+serviceAccount: 'projects/habi2ca-429416/serviceAccounts/habi2ca@habi2ca-429416.iam.gserviceaccount.com'
 options:
     logging: GCS_ONLY
