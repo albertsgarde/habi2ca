@@ -23,7 +23,7 @@ repos:
       rev: v1.35.1
       hooks:
           - id: yamllint
-            args: [--format, parsable, --strict]
+            args: [-c, .yamllint.yaml, --format, parsable, --strict]
 
     - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
       rev: 0.2.3

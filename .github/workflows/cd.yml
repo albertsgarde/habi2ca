@@ -22,5 +22,10 @@ jobs:
             - name: Set up Cloud SDK
               uses: google-github-actions/setup-gcloud@v2
 
+            - name: Authorize service account
+              run: >
+                  gcloud auth activate-service-account
+                  --key-file=$(echo ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} | base64 -d)
+
             - name: Build and submit
               run: gcloud builds submit
