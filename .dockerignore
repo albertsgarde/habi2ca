@@ -2,3 +2,5 @@ target
 local
 .cargo
 docker
+
+gha - creds -*.json
