@@ -34,6 +34,7 @@ repos:
       hooks:
           - id: check
             name: Check all
-            entry: cargo t
+            entry: cargo t --quick
             language: system
-            pass_filenames: false
+            require_serial: true
+            pass_filenames: true
