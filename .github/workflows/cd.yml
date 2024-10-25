@@ -1,0 +1,30 @@
+---
+name: CD
+on:       # yamllint disable-line rule:truthy
+    push:
+        branches:
+            - main
+
+jobs:
+    cd:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v4
+
+            - name: Authenticate with Google Cloud
+              uses: google-github-actions/auth@v2
+              with:
+                  project_id: habi2ca-429416
+                  credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+            - name: Set up Cloud SDK
+              uses: google-github-actions/setup-gcloud@v2
+
+            - name: Authorize service account
+              run: |
+                  echo ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} | base64 -d > /tmp/key.json
+                  gcloud auth activate-service-account --key-file=/tmp/key.json
+
+            - name: Build and submit
+              run: gcloud builds submit

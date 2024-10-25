@@ -14,7 +14,8 @@ export async function load(): Promise<{ players: PlayerInfo[] }> {
 			`${BACKEND_ORIGIN}/api/tasks?player=${player.id}`,
 			`Failed to get tasks for player ${player.id}`
 		);
-		return { player: player, numTasks: tasks.length };
+
+		return { player: player, numTasks: tasks.filter((task) => !task.completed).length };
 	});
 	const playerInfos = await Promise.all(playerPromises);
 	return { players: playerInfos };
