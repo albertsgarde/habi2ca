@@ -6,6 +6,7 @@ use actix_web::{
     web, App, HttpServer,
 };
 use anyhow::{bail, Context, Result};
+use habi2ca_database::migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 
 use crate::{cli::ServerConfig, routes, state::State, Never};
@@ -14,7 +15,11 @@ pub async fn open_or_initialize_database(
     database_path: impl AsRef<Path>,
 ) -> Result<DatabaseConnection> {
     let database_path = database_path.as_ref();
-    let database_url = format!("sqlite:{}?mode=rw", database_path.display());
+    let database_url = if database_path.exists() {
+        format!("sqlite:{}?mode=rw", database_path.display())
+    } else {
+        format!("sqlite:{}?mode=rwc", database_path.display())
+    };
     let database = Database::connect(database_url.as_str())
         .await
         .with_context(|| {
@@ -23,6 +28,22 @@ pub async fn open_or_initialize_database(
                 database_url.as_str()
             )
         })?;
+    if !Migrator::get_pending_migrations(&database)
+        .await
+        .context("Failed to get pending migrations")?
+        .is_empty()
+    {
+        println!("Pending migrations found. Creating backup and running migrations...");
+        let backup_path = database_path.with_extension("bak");
+        if backup_path.exists() {
+            bail!("Backup file already exists at '{}'.", backup_path.display());
+        }
+        fs::copy(database_path, &backup_path)?;
+        Migrator::up(&database, None)
+            .await
+            .context("Failed to run pending migrations")?;
+        println!("Migrations complete.");
+    }
     Ok(database)
 }
 

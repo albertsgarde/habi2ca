@@ -2,6 +2,7 @@
 
 pub mod prelude;
 
+pub mod level;
 pub mod migration;
 pub mod player;
 pub mod task;

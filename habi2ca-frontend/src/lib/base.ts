@@ -28,7 +28,7 @@ export async function fetchJson<T>(url: string, errorMessage: string): Promise<T
 			if (res_text === '') {
 				error(500, `${errorMessage}`);
 			} else {
-				error(500, `${errorMessage}: ` + (await res.text()));
+				error(500, `${errorMessage}: ` + res_text);
 			}
 		} else {
 			return res.json();

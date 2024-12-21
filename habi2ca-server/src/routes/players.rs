@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use actix_web::{get, patch, post, web, HttpRequest, Responder, Scope};
 use anyhow::Context;
 use habi2ca_database::player::{self, PlayerId};
-use sea_orm::{ActiveModelTrait, ActiveValue, EntityTrait};
+use sea_orm::EntityTrait;
 
-use crate::{routes::RouteError, state::State};
+use crate::{logic::player::Player, routes::RouteError, state::State};
 
 #[get("")]
 pub async fn get_players(state: web::Data<State>) -> Result<impl Responder, RouteError> {
@@ -23,15 +23,7 @@ pub async fn create_player(
     query: web::Query<HashMap<String, String>>,
 ) -> Result<impl Responder, RouteError> {
     let player_name = query.get("name").context("Missing 'name' parameter")?;
-    let player = player::ActiveModel {
-        name: ActiveValue::Set(player_name.clone()),
-        xp: ActiveValue::Set(0.0),
-        ..Default::default()
-    };
-    let player = player::Entity::insert(player)
-        .exec_with_returning(state.database())
-        .await
-        .context("Failed to insert player into database.")?;
+    let player = Player::create(state.database(), player_name).await?;
 
     Ok(web::Json(player))
 }
@@ -45,13 +37,9 @@ pub async fn get_player(
         .match_info()
         .load()
         .context("Missing 'id' parameter")?;
-    let player = player::Entity::find_by_id(player_id)
-        .one(state.database())
+    let player = Player::from_id(state.database(), player_id)
         .await
-        .with_context(|| {
-            format!("Failure while getting player with id {player_id} from database.")
-        })?
-        .with_context(|| format!("Player with id {player_id} not found in database."))?;
+        .with_context(|| format!("Failed to get player with id '{player_id}'."))?;
     Ok(web::Json(player))
 }
 
@@ -67,25 +55,13 @@ pub async fn add_xp(
         .context("Missing 'id' parameter")?;
     let &xp_delta = query.get("xp").context("Missing 'xp' parameter")?;
 
-    let player = player::Entity::find_by_id(player_id)
-        .one(state.database())
+    let mut player = Player::from_id(state.database(), player_id).await?;
+
+    player
+        .add_xp(state.database(), xp_delta)
         .await
-        .with_context(|| {
-            format!("Failure while getting player with id {player_id} from database.")
-        })?
-        .with_context(|| format!("Player with id {player_id} not found in database."))?;
+        .with_context(|| format!("Failed to add xp to player '{player_id}'."))?;
 
-    let new_xp = player.xp + xp_delta;
-
-    let mut active_player: player::ActiveModel = player.into();
-    active_player.xp = ActiveValue::Set(new_xp);
-
-    let player = active_player
-        .update(state.database())
-        .await
-        .with_context(|| {
-            format!("Failure while updating player with id {player_id} in database.")
-        })?;
     Ok(web::Json(player))
 }
 
@@ -101,12 +77,13 @@ pub fn add_routes(scope: Scope) -> Scope {
 mod tests {
     use actix_web::test::{self as actix_test, TestRequest};
     use habi2ca_database::{
+        level::LevelId,
         player::{self, PlayerId},
         prelude::Player,
     };
     use sea_orm::{ActiveValue, EntityTrait};
 
-    use crate::{start::create_app, test_utils};
+    use crate::{logic::level::Level, start::create_app, test_utils};
 
     #[tokio::test]
     async fn get_players() {
@@ -173,11 +150,7 @@ mod tests {
     #[tokio::test]
     async fn get_player() {
         let database = test_utils::setup_database().await;
-        let player = player::ActiveModel {
-            name: ActiveValue::Set("Alice".to_string()),
-            xp: ActiveValue::Set(0.0),
-            ..Default::default()
-        };
+        let player = player::new("Alice");
         let _player = Player::insert(player)
             .exec_with_returning(&database)
             .await
@@ -199,11 +172,14 @@ mod tests {
     #[tokio::test]
     async fn add_xp() {
         let database = test_utils::setup_database().await;
-        let player = player::ActiveModel {
-            name: ActiveValue::Set("Alice".to_string()),
-            xp: ActiveValue::Set(0.0),
-            ..Default::default()
-        };
+
+        let level_1_xp = Level::from_id(&database, LevelId(1))
+            .await
+            .unwrap()
+            .xp_requirement();
+
+        let mut player = player::new("Alice");
+        player.xp = ActiveValue::Set(level_1_xp - 5.);
         let _player = Player::insert(player)
             .exec_with_returning(&database)
             .await
@@ -223,12 +199,25 @@ mod tests {
 
         assert_eq!(player.id.0, 1);
         assert_eq!(player.name, "Alice");
-        assert_eq!(player.xp, 0.0);
+        assert_eq!(player.xp, level_1_xp - 5.);
+        assert_eq!(player.level, LevelId(1));
 
         let player: player::Model = test_utils::assert_ok_response(&app, add_xp_req).await;
 
         assert_eq!(player.id.0, 1);
         assert_eq!(player.name, "Alice");
-        assert_eq!(player.xp, 10.0);
+        assert_eq!(player.xp, 5.);
+        assert_eq!(player.level, LevelId(2));
+
+        let player: player::Model = test_utils::assert_ok_response(
+            &app,
+            TestRequest::get().uri("/api/players/1").to_request(),
+        )
+        .await;
+
+        assert_eq!(player.id.0, 1);
+        assert_eq!(player.name, "Alice");
+        assert_eq!(player.xp, 5.);
+        assert_eq!(player.level, LevelId(2));
     }
 }

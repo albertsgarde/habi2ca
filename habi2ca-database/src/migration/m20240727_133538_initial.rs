@@ -3,84 +3,77 @@ use sea_orm_migration::prelude::*;
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-async fn setup_player_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
-    manager
-        .create_table(
-            Table::create()
-                .table(Player::Table)
-                .col(
-                    ColumnDef::new(Player::Id)
-                        .integer()
-                        .not_null()
-                        .auto_increment()
-                        .primary_key(),
-                )
-                .col(ColumnDef::new(Player::Name).string().not_null())
-                .col(
-                    ColumnDef::new(Player::Xp)
-                        .float()
-                        .not_null()
-                        .check(Expr::col(Player::Xp).gte(0.0)),
-                )
-                .to_owned(),
+fn player_table() -> TableCreateStatement {
+    Table::create()
+        .table(Player::Table)
+        .col(
+            ColumnDef::new(Player::Id)
+                .integer()
+                .not_null()
+                .auto_increment()
+                .primary_key(),
         )
-        .await?;
-
-    Ok(())
+        .col(ColumnDef::new(Player::Name).string().not_null())
+        .col(
+            ColumnDef::new(Player::Xp)
+                .float()
+                .not_null()
+                .check(Expr::col(Player::Xp).gte(0.0)),
+        )
+        .col(
+            ColumnDef::new(Player::Level)
+                .integer()
+                .not_null()
+                .check(Expr::col(Player::Level).gte(1)),
+        )
+        .to_owned()
 }
 
-async fn setup_task_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
-    manager
-        .create_table(
-            Table::create()
-                .table(Task::Table)
-                .col(
-                    ColumnDef::new(Task::Id)
-                        .integer()
-                        .not_null()
-                        .auto_increment()
-                        .primary_key(),
-                )
-                .col(ColumnDef::new(Task::PlayerId).integer().not_null())
-                .foreign_key(
-                    ForeignKey::create()
-                        .name("fk_player_id")
-                        .from(Task::Table, Task::PlayerId)
-                        .to(Player::Table, Player::Id),
-                )
-                .col(ColumnDef::new(Task::Name).string().not_null())
-                .col(ColumnDef::new(Task::Description).string().not_null())
-                .col(ColumnDef::new(Task::Completed).boolean().not_null())
-                .to_owned(),
+fn task_table() -> TableCreateStatement {
+    Table::create()
+        .table(Task::Table)
+        .col(
+            ColumnDef::new(Task::Id)
+                .integer()
+                .not_null()
+                .auto_increment()
+                .primary_key(),
         )
-        .await?;
-    Ok(())
+        .col(ColumnDef::new(Task::PlayerId).integer().not_null())
+        .foreign_key(
+            ForeignKey::create()
+                .name("fk_player_id")
+                .from(Task::Table, Task::PlayerId)
+                .to(Player::Table, Player::Id),
+        )
+        .col(ColumnDef::new(Task::Name).string().not_null())
+        .col(ColumnDef::new(Task::Description).string().not_null())
+        .col(ColumnDef::new(Task::Completed).boolean().not_null())
+        .to_owned()
 }
 
-async fn setup_level_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
-    manager
-        .create_table(
-            Table::create()
-                .table(Level::Table)
-                .if_not_exists()
-                .col(
-                    ColumnDef::new(Level::Id)
-                        .integer()
-                        .not_null()
-                        .auto_increment()
-                        .primary_key()
-                        .check(Expr::col(Level::Id).gte(1)),
-                )
-                .col(
-                    ColumnDef::new(Level::XpRequirement)
-                        .float()
-                        .not_null()
-                        .check(Expr::col(Level::XpRequirement).gt(0.0)),
-                )
-                .to_owned(),
+fn level_table() -> TableCreateStatement {
+    Table::create()
+        .table(Level::Table)
+        .if_not_exists()
+        .col(
+            ColumnDef::new(Level::Id)
+                .integer()
+                .not_null()
+                .auto_increment()
+                .primary_key()
+                .check(Expr::col(Level::Id).gte(1)),
         )
-        .await?;
+        .col(
+            ColumnDef::new(Level::XpRequirement)
+                .float()
+                .not_null()
+                .check(Expr::col(Level::XpRequirement).gt(0.0)),
+        )
+        .to_owned()
+}
 
+async fn level_seed_data(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     let xp_requirements: Vec<f64> =
         serde_json::from_str(include_str!("../../../gamedata/levels.json"))
             .expect("Failed to parse levels.json");
@@ -104,9 +97,11 @@ async fn setup_level_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        setup_player_table(manager).await?;
-        setup_task_table(manager).await?;
-        setup_level_table(manager).await?;
+        manager.create_table(player_table()).await?;
+        manager.create_table(task_table()).await?;
+        manager.create_table(level_table()).await?;
+
+        level_seed_data(manager).await?;
 
         Ok(())
     }
@@ -131,6 +126,7 @@ enum Player {
     Id,
     Name,
     Xp,
+    Level,
 }
 
 #[derive(DeriveIden)]
