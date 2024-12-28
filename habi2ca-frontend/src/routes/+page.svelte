@@ -24,7 +24,7 @@
 	<div>
 		<h2>
 			{player.name}
-			<button on:click={() => goto(`/player/${player.id}`)}>Play!</button>
+			<button on:click={() => goto(`/players/${player.id}`)}>Play!</button>
 		</h2>
 		<p>Level: {player.level}</p>
 		<p>XP: {player.xp}/{player.xp_requirement}</p>
