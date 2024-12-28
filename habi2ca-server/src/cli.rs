@@ -13,6 +13,9 @@ pub struct ServerConfig {
     pub database_path: PathBuf,
     pub hostname: String,
     pub port: u16,
+    // Clear database and reapply all migrations if pending migrations cannot be applied.
+    #[clap(long)]
+    pub force_migrations: bool,
 }
 
 impl ServerConfig {

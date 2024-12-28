@@ -35,4 +35,4 @@ WORKDIR /habi2ca
 COPY --from=backend-build /habi2ca/target/release/habi2ca-server ./habi2ca-server
 
 # Set the startup command to run your binary
-CMD ["sh", "-c", "./habi2ca-server ${DATABASE_PATH} 0.0.0.0 ${PORT}"]
+CMD ["sh", "-c", "./habi2ca-server ${DATABASE_PATH} 0.0.0.0 ${PORT} --force-migrations"]

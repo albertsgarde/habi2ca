@@ -1,4 +1,7 @@
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use actix_web::{
     dev::{ServiceFactory, ServiceRequest},
@@ -7,12 +10,22 @@ use actix_web::{
 };
 use anyhow::{bail, Context, Result};
 use habi2ca_database::migration::{Migrator, MigratorTrait};
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::{sqlx::types::chrono, Database, DatabaseConnection};
 
 use crate::{cli::ServerConfig, routes, state::State, Never};
 
+fn backup(database_path: &Path) -> Result<PathBuf> {
+    let new_path =
+        database_path.with_file_name(chrono::Utc::now().format("%Y%m%d%H%M%S").to_string());
+    fs::copy(database_path, &new_path).with_context(|| {
+        format!("Failed to move database at '{database_path:?}' to new path '{new_path:?}'")
+    })?;
+    Ok(new_path)
+}
+
 pub async fn open_or_initialize_database(
     database_path: impl AsRef<Path>,
+    force_migrations: bool,
 ) -> Result<DatabaseConnection> {
     let database_path = database_path.as_ref();
     let database_url = if database_path.exists() {
@@ -34,14 +47,24 @@ pub async fn open_or_initialize_database(
         .is_empty()
     {
         println!("Pending migrations found. Creating backup and running migrations...");
-        let backup_path = database_path.with_extension("bak");
-        if backup_path.exists() {
-            bail!("Backup file already exists at '{}'.", backup_path.display());
+        let backup_path = backup(database_path)?;
+        if force_migrations {
+            if Migrator::up(&database, None).await.is_err() {
+                Migrator::fresh(&database)
+                    .await
+                    .context("Failed to run fresh migrations")
+            } else {
+                Ok(())
+            }
+        } else {
+            Migrator::up(&database, None)
+                .await
+                .context("Failed to run pending migrations")
         }
-        fs::copy(database_path, &backup_path)?;
-        Migrator::up(&database, None)
-            .await
-            .context("Failed to run pending migrations")?;
+        .map_err(|e| {
+            let _ = fs::remove_file(backup_path);
+            e
+        })?;
         println!("Migrations complete.");
     }
     Ok(database)
@@ -69,10 +92,11 @@ pub async fn start_server(config: ServerConfig) -> Result<Never> {
         database_path,
         hostname,
         port,
+        force_migrations,
     } = config;
     let hostname = hostname.as_ref();
     fs::create_dir_all(database_path.parent().unwrap())?;
-    let database = open_or_initialize_database(&database_path).await?;
+    let database = open_or_initialize_database(&database_path, force_migrations).await?;
 
     let server = HttpServer::new(move || create_app(database.clone()));
 
