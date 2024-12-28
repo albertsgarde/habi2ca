@@ -18,7 +18,7 @@
 		"@playwright/test": "^1.28.1",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/adapter-node": "^5.2.0",
-		"@sveltejs/kit": "^2.0.0",
+		"@sveltejs/kit": "^2.15.1",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@types/eslint": "^9.6.0",
 		"@types/node": "^20.14.12",
@@ -36,6 +36,11 @@
 		"typescript-eslint": "^8.0.0-alpha.20",
 		"vite": "^5.0.3",
 		"vitest": "^2.0.0"
+	},
+	"overrides": {
+		"@sveltejs/kit": {
+			"cookie": "1.0.2"
+		}
 	},
 	"type": "module"
 }
