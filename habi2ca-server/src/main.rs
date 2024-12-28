@@ -6,6 +6,7 @@ mod state;
 mod logic;
 #[cfg(test)]
 mod test_utils;
+mod tracing;
 
 use std::process::Termination;
 
@@ -23,8 +24,6 @@ impl Termination for Never {
 
 #[tokio::main]
 pub async fn main() -> Result<Never> {
-    env_logger::init();
-
     let server_config = ServerConfig::parse();
     server_config.start().await
 }

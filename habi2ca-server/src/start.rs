@@ -3,6 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use ::tracing::info;
 use actix_web::{
     dev::{ServiceFactory, ServiceRequest},
     middleware::{self, TrailingSlash},
@@ -12,7 +13,7 @@ use anyhow::{bail, Context, Result};
 use habi2ca_database::migration::{Migrator, MigratorTrait};
 use sea_orm::{sqlx::types::chrono, Database, DatabaseConnection};
 
-use crate::{cli::ServerConfig, routes, state::State, Never};
+use crate::{cli::ServerConfig, routes, state::State, tracing, Never};
 
 fn backup(database_path: &Path) -> Result<PathBuf> {
     let new_path =
@@ -46,7 +47,7 @@ pub async fn open_or_initialize_database(
         .context("Failed to get pending migrations")?
         .is_empty()
     {
-        println!("Pending migrations found. Creating backup and running migrations...");
+        info!("Pending migrations found. Creating backup and running migrations...");
         let backup_path = backup(database_path)?;
         if force_migrations {
             if Migrator::up(&database, None).await.is_err() {
@@ -65,7 +66,7 @@ pub async fn open_or_initialize_database(
             let _ = fs::remove_file(backup_path);
             e
         })?;
-        println!("Migrations complete.");
+        info!("Migrations complete.");
     }
     Ok(database)
 }
@@ -93,14 +94,18 @@ pub async fn start_server(config: ServerConfig) -> Result<Never> {
         hostname,
         port,
         force_migrations,
+        log_dir,
     } = config;
+
+    let _guard = log_dir.map(tracing::setup_tracing).transpose()?;
+
     let hostname = hostname.as_ref();
     fs::create_dir_all(database_path.parent().unwrap())?;
     let database = open_or_initialize_database(&database_path, force_migrations).await?;
 
     let server = HttpServer::new(move || create_app(database.clone()));
 
-    println!("Starting server at http://{hostname}:{port}");
+    info!("Starting server at http://{hostname}:{port}");
     server.bind((hostname, port))?.run().await?;
 
     bail!("Server stopped unexpectedly.")
