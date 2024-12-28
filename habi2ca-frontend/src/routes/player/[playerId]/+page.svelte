@@ -24,7 +24,8 @@
 	Create Task
 </button>
 <p>Name: {player.name}</p>
-<p>XP: {player.xp}</p>
+<p>Level: {player.level}</p>
+<p>XP: {player.xp}/{player.xp_requirement}</p>
 <button
 	on:click={async () =>
 		(player = await addXp(

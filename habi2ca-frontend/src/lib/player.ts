@@ -2,6 +2,8 @@ export type Player = {
 	id: number;
 	name: string;
 	xp: number;
+	level: number;
+	xp_requirement: number;
 };
 
 export async function createPlayer(origin: URL, playerName: string): Promise<Player> {
@@ -11,6 +13,16 @@ export async function createPlayer(origin: URL, playerName: string): Promise<Pla
 		return await response.json();
 	} else {
 		throw new Error(`Failed to create player "${playerName}": ${await response.text()}`);
+	}
+}
+
+export async function getPlayer(origin: URL, playerId: number): Promise<Player> {
+	const getPlayerUrl = `${origin}api/players/${playerId}`;
+	const response = await fetch(getPlayerUrl, { method: 'GET' });
+	if (response.ok) {
+		return await response.json();
+	} else {
+		throw new Error(`Failed to get player ${playerId}: ${await response.text()}`);
 	}
 }
 

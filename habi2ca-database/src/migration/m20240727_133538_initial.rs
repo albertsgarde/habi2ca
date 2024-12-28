@@ -21,10 +21,10 @@ fn player_table() -> TableCreateStatement {
                 .check(Expr::col(Player::Xp).gte(0.0)),
         )
         .col(
-            ColumnDef::new(Player::Level)
+            ColumnDef::new(Player::LevelId)
                 .integer()
                 .not_null()
-                .check(Expr::col(Player::Level).gte(1)),
+                .check(Expr::col(Player::LevelId).gte(1)),
         )
         .to_owned()
 }
@@ -126,7 +126,7 @@ enum Player {
     Id,
     Name,
     Xp,
-    Level,
+    LevelId,
 }
 
 #[derive(DeriveIden)]

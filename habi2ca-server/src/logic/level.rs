@@ -4,7 +4,7 @@ use habi2ca_database::level::{self, LevelId, Model};
 use sea_orm::{ConnectionTrait, DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Level {
     #[serde(flatten)]
     pub(super) model: Model,

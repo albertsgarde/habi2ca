@@ -324,7 +324,7 @@ mod tests {
         )
         .await;
 
-        assert_eq!(response_player.level, LevelId(2));
+        assert_eq!(response_player.level_id, LevelId(2));
         assert_eq!(response_player.xp, 0.5);
     }
 }

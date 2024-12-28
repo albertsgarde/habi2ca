@@ -3,7 +3,7 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::implement_id;
+use crate::{implement_id, player};
 
 implement_id!(LevelId);
 
@@ -16,7 +16,16 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(has_many = "super::player::Entity")]
+    Player,
+}
+
+impl Related<player::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Player.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}
 
