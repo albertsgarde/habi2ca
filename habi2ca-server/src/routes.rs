@@ -1,3 +1,4 @@
+mod levels;
 mod players;
 mod tasks;
 
@@ -22,4 +23,5 @@ pub fn add_routes(scope: Scope) -> Scope {
     scope
         .service(players::add_routes(web::scope("/players")))
         .service(tasks::add_routes(web::scope("/tasks")))
+        .service(levels::add_routes(web::scope("/levels")))
 }

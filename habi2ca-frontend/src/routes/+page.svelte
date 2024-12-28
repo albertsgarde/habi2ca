@@ -24,9 +24,10 @@
 	<div>
 		<h2>
 			{player.name}
-			<button on:click={() => goto(`/player/${player.id}`)}>Play!</button>
+			<button on:click={() => goto(`/players/${player.id}`)}>Play!</button>
 		</h2>
-		<p>XP: {player.xp}</p>
+		<p>Level: {player.level}</p>
+		<p>XP: {player.xp}/{player.xp_requirement}</p>
 		<p>Number of tasks: {numTasks}</p>
 	</div>
 {/each}

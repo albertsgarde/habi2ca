@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display};
+use std::collections::HashMap;
 
 use actix_web::{
     get, patch, post,
@@ -6,45 +6,23 @@ use actix_web::{
     HttpRequest, Responder, Scope,
 };
 use anyhow::Context;
-use habi2ca_database::{
-    player::{self, PlayerId},
-    task::{self, ActiveModel, TaskId},
+use habi2ca_database::{player::PlayerId, task::TaskId};
+
+use crate::{
+    logic::{
+        player::Player,
+        task::{Task, TaskData},
+    },
+    routes::RouteError,
+    state::State,
 };
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, TransactionTrait};
-use serde::{Deserialize, Serialize};
-
-use crate::{routes::RouteError, state::State};
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct TaskData {
-    pub player: PlayerId,
-    pub name: String,
-    pub description: String,
-    pub completed: bool,
-}
-
-impl TaskData {
-    pub fn into_active_model(self) -> task::ActiveModel {
-        task::ActiveModel {
-            player_id: sea_orm::ActiveValue::Set(self.player),
-            name: sea_orm::ActiveValue::Set(self.name),
-            description: sea_orm::ActiveValue::Set(self.description),
-            completed: sea_orm::ActiveValue::Set(self.completed),
-            ..Default::default()
-        }
-    }
-}
 
 #[post("")]
 pub async fn create_task(
     state: web::Data<State>,
     task: Json<TaskData>,
 ) -> Result<impl Responder, RouteError> {
-    let task_data = task.into_inner();
-    let task = task::Entity::insert(task_data.into_active_model())
-        .exec_with_returning(state.database())
-        .await
-        .context("Failed to insert task into database.")?;
+    let task = Task::create(state.database(), task.into_inner()).await?;
     Ok(web::Json(task))
 }
 
@@ -61,17 +39,14 @@ pub async fn get_tasks(
                 .map(PlayerId)
         })
         .transpose()?;
-    let selection = task::Entity::find();
-    let selection = if let Some(player_id) = player_id {
-        selection.filter(task::Column::PlayerId.eq(player_id))
+
+    let result = if let Some(player_id) = player_id {
+        let player = Player::from_id(state.database(), player_id).await?;
+        player.get_tasks(state.database()).await?
     } else {
-        selection
+        Task::all_tasks(state.database()).await?
     };
-    let tasks = selection
-        .all(state.database())
-        .await
-        .context("Failed to get tasks.")?;
-    Ok(web::Json(tasks))
+    Ok(web::Json(result))
 }
 
 #[get("/{id}")]
@@ -83,29 +58,9 @@ pub async fn get_task(
         .match_info()
         .load()
         .context("Missing 'id' parameter")?;
-    let task = task::Entity::find_by_id(task_id)
-        .one(state.database())
-        .await
-        .with_context(|| format!("Failed to get task with id {task_id} from database."))?
-        .with_context(|| format!("No task with id {task_id} exists."))?;
+
+    let task = Task::from_id(state.database(), task_id).await?;
     Ok(web::Json(task))
-}
-
-#[derive(Debug)]
-struct DbError(anyhow::Error);
-
-impl Display for DbError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl std::error::Error for DbError {}
-
-impl From<anyhow::Error> for DbError {
-    fn from(error: anyhow::Error) -> Self {
-        Self(error)
-    }
 }
 
 #[patch("/{id}/complete")]
@@ -118,55 +73,10 @@ pub async fn complete_task(
         .load()
         .context("Missing 'id' parameter")?;
 
-    println!("Completing task with id {task_id}.");
+    let mut task = Task::from_id(state.database(), task_id).await?;
 
-    Ok(state
-        .database()
-        .transaction::<_, web::Json<_>, DbError>(|txn| {
-            Box::pin(async move {
-                let task = task::Entity::find_by_id(task_id)
-                    .one(txn)
-                    .await
-                    .with_context(|| {
-                        format!("Failed to get task with id {task_id} from database.")
-                    })?
-                    .with_context(|| format!("No task with id {task_id} exists."))?;
-
-                if task.completed {
-                    return Ok(web::Json(task));
-                }
-                let mut task: ActiveModel = task.into();
-                task.completed = sea_orm::ActiveValue::Set(true);
-                let task = task::Entity::update(task)
-                    .exec(txn)
-                    .await
-                    .with_context(|| format!("Failed to update task with id {task_id}."))?;
-
-                let player = player::Entity::find_by_id(task.player_id)
-                    .one(txn)
-                    .await
-                    .with_context(|| {
-                        format!("Failed to get owner {} of task {}", task.player_id, task.id)
-                    })?
-                    .with_context(|| {
-                        format!(
-                            "Owner {} of task {} does not exist.",
-                            task.player_id, task.id
-                        )
-                    })?;
-                let prev_xp = player.xp;
-                let player_id = task.player_id;
-                let mut player: player::ActiveModel = player.into();
-                player.xp = sea_orm::ActiveValue::Set(prev_xp + 1.0);
-                let _player = player::Entity::update(player)
-                    .exec(txn)
-                    .await
-                    .with_context(|| format!("Failed to update player with id {player_id}."))?;
-                Ok(web::Json(task))
-            })
-        })
-        .await
-        .context("Failed to complete transaction")?)
+    task.complete_task(state.database()).await?;
+    Ok(web::Json(task))
 }
 
 pub fn add_routes(scope: Scope) -> Scope {
@@ -181,25 +91,22 @@ pub fn add_routes(scope: Scope) -> Scope {
 mod tests {
     use actix_web::test::{self as actix_test, TestRequest};
     use habi2ca_database::{
-        player::{self},
-        prelude::Player,
-        task,
+        level::{self, LevelId},
+        player, task,
     };
     use sea_orm::{ActiveValue, DatabaseConnection, EntityTrait};
 
-    use crate::{routes::tasks::TaskData, start::create_app, test_utils};
+    use crate::{
+        logic::{player::Player, task::Task},
+        routes::tasks::TaskData,
+        start::create_app,
+        test_utils,
+    };
 
-    async fn setup_database() -> (DatabaseConnection, player::Model) {
+    async fn setup_database() -> (DatabaseConnection, Player) {
         let database = test_utils::setup_database().await;
 
-        let player = Player::insert(player::ActiveModel {
-            name: ActiveValue::Set("Alice".to_string()),
-            xp: ActiveValue::Set(0.0),
-            ..Default::default()
-        })
-        .exec_with_returning(&database)
-        .await
-        .unwrap();
+        let player = Player::create(&database, "Alice").await.unwrap();
 
         (database, player)
     }
@@ -212,7 +119,7 @@ mod tests {
         let request = TestRequest::post()
             .uri("/api/tasks")
             .set_json(TaskData {
-                player: player.id,
+                player: player.id(),
                 name: "Task1".to_string(),
                 description: "Description1".to_string(),
                 completed: false,
@@ -221,7 +128,7 @@ mod tests {
         let task: task::Model = test_utils::assert_ok_response(&app, request).await;
         println!("{task:?}");
         assert_eq!(task.id.0, 1);
-        assert_eq!(task.player_id, player.id);
+        assert_eq!(task.player_id, player.id());
         assert_eq!(task.name, "Task1");
         assert_eq!(task.description, "Description1");
         assert_eq!(task.completed, false);
@@ -232,7 +139,7 @@ mod tests {
         let (database, player) = setup_database().await;
 
         let task1 = task::ActiveModel {
-            player_id: ActiveValue::Set(player.id),
+            player_id: ActiveValue::Set(player.id()),
             name: ActiveValue::Set("Task1".to_string()),
             description: ActiveValue::Set("Description1".to_string()),
             completed: ActiveValue::Set(false),
@@ -245,7 +152,7 @@ mod tests {
             .unwrap();
 
         let task2 = task::ActiveModel {
-            player_id: ActiveValue::Set(player.id),
+            player_id: ActiveValue::Set(player.id()),
             name: ActiveValue::Set("Task2".to_string()),
             description: ActiveValue::Set("Description2".to_string()),
             completed: ActiveValue::Set(true),
@@ -265,13 +172,13 @@ mod tests {
 
         assert_eq!(tasks.len(), 2);
         assert_eq!(tasks[0].id, task1.id);
-        assert_eq!(tasks[0].player_id, player.id);
+        assert_eq!(tasks[0].player_id, player.id());
         assert_eq!(tasks[0].name, "Task1");
         assert_eq!(tasks[0].description, "Description1");
         assert_eq!(tasks[0].completed, false);
 
         assert_eq!(tasks[1].id, task2.id);
-        assert_eq!(tasks[1].player_id, player.id);
+        assert_eq!(tasks[1].player_id, player.id());
         assert_eq!(tasks[1].name, "Task2");
         assert_eq!(tasks[1].description, "Description2");
         assert_eq!(tasks[1].completed, true);
@@ -281,34 +188,29 @@ mod tests {
     async fn get_player_tasks() {
         let (database, player1) = setup_database().await;
 
-        let player2 = Player::insert(player::ActiveModel {
-            name: ActiveValue::Set("Bob".to_string()),
-            xp: ActiveValue::Set(0.0),
-            ..Default::default()
-        })
-        .exec_with_returning(&database)
+        let player2 = Player::create(&database, "Bob").await.unwrap();
+
+        Task::create(
+            &database,
+            TaskData {
+                player: player1.id(),
+                name: "Task1".to_string(),
+                description: "Description1".to_string(),
+                completed: false,
+            },
+        )
         .await
         .unwrap();
 
-        let _task1 = task::Entity::insert(task::ActiveModel {
-            player_id: ActiveValue::Set(player1.id),
-            name: ActiveValue::Set("Task1".to_string()),
-            description: ActiveValue::Set("Description1".to_string()),
-            completed: ActiveValue::Set(false),
-            ..Default::default()
-        })
-        .exec_with_returning(&database)
-        .await
-        .unwrap();
-
-        let task2 = task::Entity::insert(task::ActiveModel {
-            player_id: ActiveValue::Set(player2.id),
-            name: ActiveValue::Set("Task2".to_string()),
-            description: ActiveValue::Set("Description2".to_string()),
-            completed: ActiveValue::Set(false),
-            ..Default::default()
-        })
-        .exec_with_returning(&database)
+        let task2 = Task::create(
+            &database,
+            TaskData {
+                player: player2.id(),
+                name: "Task2".to_string(),
+                description: "Description2".to_string(),
+                completed: false,
+            },
+        )
         .await
         .unwrap();
 
@@ -321,8 +223,8 @@ mod tests {
         .await;
 
         assert_eq!(tasks.len(), 1);
-        assert_eq!(tasks[0].id, task2.id);
-        assert_eq!(tasks[0].player_id, task2.player_id);
+        assert_eq!(tasks[0].id, task2.id());
+        assert_eq!(tasks[0].player_id, task2.player_id());
         assert_eq!(tasks[0].name, "Task2");
         assert_eq!(tasks[0].description, "Description2");
         assert_eq!(tasks[0].completed, false);
@@ -332,14 +234,15 @@ mod tests {
     async fn get_task() {
         let (database, player) = setup_database().await;
 
-        let _task = task::Entity::insert(task::ActiveModel {
-            player_id: ActiveValue::Set(player.id),
-            name: ActiveValue::Set("Task1".to_string()),
-            description: ActiveValue::Set("Description1".to_string()),
-            completed: ActiveValue::Set(false),
-            ..Default::default()
-        })
-        .exec_with_returning(&database)
+        Task::create(
+            &database,
+            TaskData {
+                player: player.id(),
+                name: "Task1".to_string(),
+                description: "Description1".to_string(),
+                completed: false,
+            },
+        )
         .await
         .unwrap();
 
@@ -353,7 +256,7 @@ mod tests {
 
         println!("{response_task:?}");
         assert_eq!(response_task.id.0, 1);
-        assert_eq!(response_task.player_id, player.id);
+        assert_eq!(response_task.player_id, player.id());
         assert_eq!(response_task.name, "Task1");
         assert_eq!(response_task.description, "Description1");
         assert_eq!(response_task.completed, false);
@@ -361,16 +264,26 @@ mod tests {
 
     #[tokio::test]
     async fn complete_task() {
-        let (database, player) = setup_database().await;
+        let (database, mut player) = setup_database().await;
 
-        let _task = task::Entity::insert(task::ActiveModel {
-            player_id: ActiveValue::Set(player.id),
-            name: ActiveValue::Set("Task1".to_string()),
-            description: ActiveValue::Set("Description1".to_string()),
-            completed: ActiveValue::Set(false),
-            ..Default::default()
-        })
-        .exec_with_returning(&database)
+        let level_1_xp = level::Entity::find_by_id(LevelId(1))
+            .one(&database)
+            .await
+            .unwrap()
+            .unwrap()
+            .xp_requirement;
+
+        player.add_xp(&database, level_1_xp - 0.5).await.unwrap();
+
+        let task = Task::create(
+            &database,
+            TaskData {
+                player: player.id(),
+                name: "Task1".to_string(),
+                description: "Description1".to_string(),
+                completed: false,
+            },
+        )
         .await
         .unwrap();
 
@@ -379,25 +292,39 @@ mod tests {
         let response_task: task::Model = test_utils::assert_ok_response(
             &app,
             TestRequest::patch()
-                .uri("/api/tasks/1/complete")
+                .uri(&format!("/api/tasks/{}/complete", task.id()))
                 .to_request(),
         )
         .await;
 
         println!("{response_task:?}");
         assert_eq!(response_task.id.0, 1);
-        assert_eq!(response_task.player_id, player.id);
+        assert_eq!(response_task.player_id, player.id());
+        assert_eq!(response_task.name, "Task1");
+        assert_eq!(response_task.description, "Description1");
+        assert_eq!(response_task.completed, true);
+
+        let response_task: task::Model = test_utils::assert_ok_response(
+            &app,
+            TestRequest::get().uri("/api/tasks/1").to_request(),
+        )
+        .await;
+
+        assert_eq!(response_task.id.0, 1);
+        assert_eq!(response_task.player_id, player.id());
         assert_eq!(response_task.name, "Task1");
         assert_eq!(response_task.description, "Description1");
         assert_eq!(response_task.completed, true);
 
         let response_player: player::Model = test_utils::assert_ok_response(
             &app,
-            TestRequest::get().uri("/api/players/1").to_request(),
+            TestRequest::get()
+                .uri(&format!("/api/players/{}", task.player_id()))
+                .to_request(),
         )
         .await;
 
-        assert!(response_player.xp > player.xp);
-        assert_eq!(response_player.name, player.name);
+        assert_eq!(response_player.level_id, LevelId(2));
+        assert_eq!(response_player.xp, 0.5);
     }
 }

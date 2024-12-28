@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import { type Subscriber, type Unsubscriber } from 'svelte/store';
 import { env } from '$env/dynamic/public';
 
-export const BACKEND_ORIGIN: string = env.PUBLIC_BACKEND_ORIGIN || 'http://localhost:8080';
+export const BACKEND_ORIGIN: URL = new URL(env.PUBLIC_BACKEND_ORIGIN || 'http://localhost:8080');
 
 export function expect<T>(value: T | null, message: string): T {
 	if (value === null || value === undefined) {
@@ -28,7 +28,7 @@ export async function fetchJson<T>(url: string, errorMessage: string): Promise<T
 			if (res_text === '') {
 				error(500, `${errorMessage}`);
 			} else {
-				error(500, `${errorMessage}: ` + (await res.text()));
+				error(500, `${errorMessage}: ` + res_text);
 			}
 		} else {
 			return res.json();
