@@ -1,5 +1,5 @@
 # Use an image with a specific version of Rust.
-FROM lukemathwalker/cargo-chef:0.1.67-rust-1.79-slim-buster AS planner
+FROM lukemathwalker/cargo-chef:0.1.68-rust-1.83.0-alpine3.21 AS planner
 # This container only exists to run 'cargo chef prepare' which sets up 'recipe.json' for the next stage.
 
 WORKDIR /habi2ca
@@ -7,7 +7,7 @@ COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 
-FROM lukemathwalker/cargo-chef:0.1.67-rust-1.79-slim-buster AS backend-build
+FROM lukemathwalker/cargo-chef:0.1.68-rust-1.83.0-alpine3.21 AS backend-build
 # This container builds the backend.
 
 WORKDIR /habi2ca
@@ -25,7 +25,7 @@ COPY gamedata gamedata
 RUN cargo build --release --bin habi2ca-server
 
 # Our final base
-FROM debian:buster-slim AS backend-prod
+FROM alpine:3.21.0 AS backend-prod
 ENV DATABASE_PATH=/habi2ca/db/data.db
 ENV PORT=8080
 ENV LOG_DIR=/habi2ca/log
