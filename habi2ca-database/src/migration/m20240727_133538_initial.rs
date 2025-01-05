@@ -52,6 +52,28 @@ fn task_table() -> TableCreateStatement {
         .to_owned()
 }
 
+fn habit_table() -> TableCreateStatement {
+    Table::create()
+        .table(Habit::Table)
+        .col(
+            ColumnDef::new(Habit::Id)
+                .integer()
+                .not_null()
+                .auto_increment()
+                .primary_key(),
+        )
+        .col(ColumnDef::new(Habit::PlayerId).integer().not_null())
+        .foreign_key(
+            ForeignKey::create()
+                .name("fk_player_id")
+                .from(Habit::Table, Habit::PlayerId)
+                .to(Player::Table, Player::Id),
+        )
+        .col(ColumnDef::new(Habit::Name).string().not_null())
+        .col(ColumnDef::new(Habit::Description).string().not_null())
+        .to_owned()
+}
+
 fn level_table() -> TableCreateStatement {
     Table::create()
         .table(Level::Table)
@@ -99,6 +121,7 @@ impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager.create_table(player_table()).await?;
         manager.create_table(task_table()).await?;
+        manager.create_table(habit_table()).await?;
         manager.create_table(level_table()).await?;
 
         level_seed_data(manager).await?;
@@ -112,6 +135,9 @@ impl MigrationTrait for Migration {
             .await?;
         manager
             .drop_table(Table::drop().table(Task::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Habit::Table).to_owned())
             .await?;
         manager
             .drop_table(Table::drop().table(Player::Table).to_owned())
@@ -137,6 +163,15 @@ enum Task {
     Name,
     Description,
     Completed,
+}
+
+#[derive(DeriveIden)]
+enum Habit {
+    Table,
+    Id,
+    PlayerId,
+    Name,
+    Description,
 }
 
 #[derive(DeriveIden)]
