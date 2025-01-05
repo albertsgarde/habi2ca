@@ -16,6 +16,8 @@ pub struct ServerConfig {
     // Clear database and reapply all migrations if pending migrations cannot be applied.
     #[clap(long)]
     pub force_migrations: bool,
+    #[clap(long)]
+    pub log_dir: Option<PathBuf>,
 }
 
 impl ServerConfig {

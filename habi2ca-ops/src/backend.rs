@@ -1,4 +1,7 @@
-use std::{path::Path, process::Command};
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 use anyhow::{Context, Result};
 use clap::Args;
@@ -13,6 +16,8 @@ pub struct RunBackend {
     port: u16,
     #[arg(long, default_value = "false")]
     release: bool,
+    #[arg(long, default_value = "./local/logs/")]
+    log_dir: PathBuf,
 }
 
 impl RunBackend {
@@ -32,6 +37,8 @@ impl RunBackend {
             self.database_path.as_str(),
             self.hostname.as_str(),
             self.port.to_string().as_str(),
+            "--log-dir",
+            self.log_dir.to_str().unwrap(),
         ]);
         command
             .spawn()

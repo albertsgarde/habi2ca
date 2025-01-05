@@ -115,7 +115,6 @@ impl Task {
                     let mut player = Player::from_id(txn, player_id)
                         .await
                         .with_context(|| format!("Failed to get owner of task {}", task_id))?;
-                    println!("Adding xp to player {}", player_id);
 
                     player.add_xp(txn, 1.0).await.with_context(|| {
                         format!(

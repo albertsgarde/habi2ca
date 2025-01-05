@@ -126,7 +126,6 @@ mod tests {
             })
             .to_request();
         let task: task::Model = test_utils::assert_ok_response(&app, request).await;
-        println!("{task:?}");
         assert_eq!(task.id.0, 1);
         assert_eq!(task.player_id, player.id());
         assert_eq!(task.name, "Task1");
@@ -254,7 +253,6 @@ mod tests {
         )
         .await;
 
-        println!("{response_task:?}");
         assert_eq!(response_task.id.0, 1);
         assert_eq!(response_task.player_id, player.id());
         assert_eq!(response_task.name, "Task1");
@@ -297,7 +295,6 @@ mod tests {
         )
         .await;
 
-        println!("{response_task:?}");
         assert_eq!(response_task.id.0, 1);
         assert_eq!(response_task.player_id, player.id());
         assert_eq!(response_task.name, "Task1");
