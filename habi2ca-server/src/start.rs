@@ -62,9 +62,8 @@ pub async fn open_or_initialize_database(
                 .await
                 .context("Failed to run pending migrations")
         }
-        .map_err(|e| {
+        .inspect_err(|_| {
             let _ = fs::remove_file(backup_path);
-            e
         })?;
         info!("Migrations complete.");
     }
