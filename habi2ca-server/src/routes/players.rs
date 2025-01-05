@@ -141,7 +141,6 @@ mod tests {
         )
         .await;
 
-        println!("{:?}", player);
         assert_eq!(player.id(), PlayerId(1));
         assert_eq!(player.name(), "Alice");
         assert_eq!(player.xp(), 0.0);

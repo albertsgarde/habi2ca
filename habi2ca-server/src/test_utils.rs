@@ -24,7 +24,6 @@ where
     R: DeserializeOwned,
 {
     let response = actix_test::call_service(app, req).await;
-    println!("Response: {response:?}");
     if !response.status().is_success() {
         let body = actix_test::read_body(response).await;
 
