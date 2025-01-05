@@ -17,11 +17,15 @@ pub fn setup_tracing(log_dir: impl AsRef<Path>) -> Result<WorkerGuard> {
                 .with_targets([("habi2ca", Level::DEBUG)]),
         );
 
-    let stdout_layer = fmt::Layer::new().with_writer(io::stdout).with_filter(
-        filter::Targets::new()
-            .with_default(Level::WARN)
-            .with_targets([("habi2ca", Level::INFO)]),
-    );
+    let stdout_layer = fmt::Layer::new()
+        .with_writer(io::stdout)
+        .with_target(false)
+        .without_time()
+        .with_filter(
+            filter::Targets::new()
+                .with_default(Level::WARN)
+                .with_targets([("habi2ca", Level::INFO)]),
+        );
 
     let subscriber = tracing_subscriber::registry()
         .with(log_layer)
