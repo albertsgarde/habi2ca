@@ -1,3 +1,4 @@
+mod admin;
 mod levels;
 mod players;
 mod tasks;
@@ -21,6 +22,7 @@ impl ResponseError for RouteError {}
 
 pub fn add_routes(scope: Scope) -> Scope {
     scope
+        .service(admin::add_routes(web::scope("/admin")))
         .service(players::add_routes(web::scope("/players")))
         .service(tasks::add_routes(web::scope("/tasks")))
         .service(levels::add_routes(web::scope("/levels")))

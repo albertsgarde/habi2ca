@@ -3,6 +3,7 @@ mod routes;
 mod start;
 mod state;
 
+mod database_utils;
 mod logic;
 #[cfg(test)]
 mod test_utils;
