@@ -20,18 +20,22 @@ export const origin = {
 	}
 };
 
-export async function fetchJson<T>(url: string, errorMessage: string): Promise<T> {
-	return fetch(url).then(async (res) => {
-		if (!res.ok) {
-			console.log(res);
-			const res_text = await res.text();
-			if (res_text === '') {
-				error(500, `${res.status}: ${errorMessage}`);
-			} else {
-				error(500, `${res.status}: ${errorMessage}: ` + res_text);
-			}
+export async function handleJsonResponse<T>(response: Response, errorMessage: string): Promise<T> {
+	if (!response.ok) {
+		console.log(response);
+		const res_text = await response.text();
+		if (res_text === '') {
+			error(500, `${response.status}: ${errorMessage}`);
 		} else {
-			return res.json();
+			error(500, `${response.status}: ${errorMessage}: ` + res_text);
 		}
+	} else {
+		return response.json();
+	}
+}
+
+export async function fetchJson<T>(url: string, errorMessage: string): Promise<T> {
+	return fetch(url).then(async (response) => {
+		return handleJsonResponse(response, errorMessage);
 	});
 }

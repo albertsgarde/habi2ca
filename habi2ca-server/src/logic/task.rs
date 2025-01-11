@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TaskData {
-    pub player: PlayerId,
+    pub player_id: PlayerId,
     pub name: String,
     pub description: String,
     pub completed: bool,
@@ -23,7 +23,7 @@ pub struct TaskData {
 impl TaskData {
     pub fn into_active_model(self) -> task::ActiveModel {
         task::ActiveModel {
-            player_id: sea_orm::ActiveValue::Set(self.player),
+            player_id: sea_orm::ActiveValue::Set(self.player_id),
             name: sea_orm::ActiveValue::Set(self.name),
             description: sea_orm::ActiveValue::Set(self.description),
             completed: sea_orm::ActiveValue::Set(self.completed),

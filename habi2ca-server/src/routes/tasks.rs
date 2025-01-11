@@ -112,7 +112,7 @@ mod tests {
         let request = TestRequest::post()
             .uri("/api/tasks")
             .set_json(TaskData {
-                player: player.id(),
+                player_id: player.id(),
                 name: "Task1".to_string(),
                 description: "Description1".to_string(),
                 completed: false,
@@ -133,7 +133,7 @@ mod tests {
         let task1 = Task::create(
             &database,
             TaskData {
-                player: player.id(),
+                player_id: player.id(),
                 name: "Task1".to_string(),
                 description: "Description1".to_string(),
                 completed: false,
@@ -145,7 +145,7 @@ mod tests {
         let task2 = Task::create(
             &database,
             TaskData {
-                player: player.id(),
+                player_id: player.id(),
                 name: "Task2".to_string(),
                 description: "Description2".to_string(),
                 completed: true,
@@ -184,7 +184,7 @@ mod tests {
         Task::create(
             &database,
             TaskData {
-                player: player1.id(),
+                player_id: player1.id(),
                 name: "Task1".to_string(),
                 description: "Description1".to_string(),
                 completed: false,
@@ -196,7 +196,7 @@ mod tests {
         let task2 = Task::create(
             &database,
             TaskData {
-                player: player2.id(),
+                player_id: player2.id(),
                 name: "Task2".to_string(),
                 description: "Description2".to_string(),
                 completed: false,
@@ -228,7 +228,7 @@ mod tests {
         Task::create(
             &database,
             TaskData {
-                player: player.id(),
+                player_id: player.id(),
                 name: "Task1".to_string(),
                 description: "Description1".to_string(),
                 completed: false,
@@ -266,7 +266,7 @@ mod tests {
         let task = Task::create(
             &database,
             TaskData {
-                player: player.id(),
+                player_id: player.id(),
                 name: "Task1".to_string(),
                 description: "Description1".to_string(),
                 completed: false,

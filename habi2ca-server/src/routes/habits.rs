@@ -117,7 +117,7 @@ mod test {
         let request = TestRequest::post()
             .uri("/api/habits")
             .set_json(HabitData {
-                player: player.id(),
+                player_id: player.id(),
                 name: "Habit1".to_string(),
                 description: "Description1".to_string(),
             })
@@ -138,7 +138,7 @@ mod test {
         let habit1 = Habit::create(
             &database,
             HabitData {
-                player: player.id(),
+                player_id: player.id(),
                 name: "Habit1".to_string(),
                 description: "Description1".to_string(),
             },
@@ -149,7 +149,7 @@ mod test {
         let habit2 = Habit::create(
             &database,
             HabitData {
-                player: player.id(),
+                player_id: player.id(),
                 name: "Habit2".to_string(),
                 description: "Description2".to_string(),
             },
@@ -187,7 +187,7 @@ mod test {
         let _habit1 = Habit::create(
             &database,
             HabitData {
-                player: player.id(),
+                player_id: player.id(),
                 name: "Habit1".to_string(),
                 description: "Description1".to_string(),
             },
@@ -198,7 +198,7 @@ mod test {
         let habit2 = Habit::create(
             &database,
             HabitData {
-                player: player2.id(),
+                player_id: player2.id(),
                 name: "Habit2".to_string(),
                 description: "Description2".to_string(),
             },
@@ -229,7 +229,7 @@ mod test {
         let habit1 = Habit::create(
             &database,
             HabitData {
-                player: player.id(),
+                player_id: player.id(),
                 name: "Habit1".to_string(),
                 description: "Description1".to_string(),
             },
@@ -258,7 +258,7 @@ mod test {
         let habit1 = Habit::create(
             &database,
             HabitData {
-                player: player.id(),
+                player_id: player.id(),
                 name: "Habit1".to_string(),
                 description: "Description1".to_string(),
             },
