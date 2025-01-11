@@ -1,7 +1,7 @@
 import type { Player } from './player';
 
 export type TaskData = {
-	player: number;
+	player_id: number;
 	name: string;
 	description: string;
 	completed: boolean;
@@ -9,7 +9,7 @@ export type TaskData = {
 
 export type Task = {
 	id: number;
-	player: number;
+	player_id: number;
 	name: string;
 	description: string;
 	completed: boolean;
@@ -45,7 +45,7 @@ export async function completeTask(origin: URL, taskId: number): Promise<[Task, 
 	if (!taskResponse.ok) {
 		throw new Error(`Failed to complete task: ${await taskResponse.text()}`);
 	}
-	const task = await taskResponse.json();
+	const task: Task = await taskResponse.json();
 
 	const playerResponse = await fetch(`${origin}api/players/${task.player_id}`);
 	if (playerResponse.ok) {

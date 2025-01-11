@@ -1,14 +1,14 @@
 import type { Player } from './player';
 
 export type HabitData = {
-	player: number;
+	player_id: number;
 	name: string;
 	description: string;
 };
 
 export type Habit = {
 	id: number;
-	player: number;
+	player_id: number;
 	name: string;
 	description: string;
 };
@@ -39,15 +39,15 @@ export async function createHabit(origin: URL, habitData: HabitData): Promise<Ha
 	}
 }
 
-export async function completeHabit(origin: URL, habitId: number): Promise<[Habit, Player]> {
-	const completeHabitUrl = `${origin}api/habits/${habitId}/complete`;
+export async function incrementHabit(origin: URL, habitId: number): Promise<[Habit, Player]> {
+	const completeHabitUrl = `${origin}api/habits/${habitId}/increment`;
 	const habitResponse = await fetch(completeHabitUrl, { method: 'PATCH' });
 	if (!habitResponse.ok) {
-		throw new Error(`Failed to complete habit. ${habitResponse.status}: ${await habitResponse.text()}`);
+		throw new Error(`Failed to increment habit. ${habitResponse.status}: ${await habitResponse.text()}`);
 	}
-	const habit = await habitResponse.json();
+	const habit: Habit = await habitResponse.json();
 
-	const playerResponse = await fetch(`${origin}api/players/${habit.player}`);
+	const playerResponse = await fetch(`${origin}api/players/${habit.player_id}`);
 	if (playerResponse.ok) {
 		const player = await playerResponse.json();
 		return [habit, player];
