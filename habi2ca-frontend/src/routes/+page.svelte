@@ -20,7 +20,7 @@
 	}}>Create Player</button
 >
 
-{#each playerInfos as { player, numTasks }}
+{#each playerInfos as { player, numTasks, numHabits }}
 	<div>
 		<h2>
 			{player.name}
@@ -28,6 +28,7 @@
 		</h2>
 		<p>Level: {player.level}</p>
 		<p>XP: {player.xp}/{player.xp_requirement}</p>
+		<p>Number of habits: {numHabits}</p>
 		<p>Number of tasks: {numTasks}</p>
 	</div>
 {/each}

@@ -16,6 +16,16 @@ export async function createPlayer(origin: URL, playerName: string): Promise<Pla
 	}
 }
 
+export async function getPlayers(origin: URL): Promise<Player[]> {
+	const getPlayersUrl = `${origin}api/players`;
+	const response = await fetch(getPlayersUrl, { method: 'GET' });
+	if (response.ok) {
+		return await response.json();
+	} else {
+		throw new Error(`Failed to get players: ${await response.text()}`);
+	}
+}
+
 export async function getPlayer(origin: URL, playerId: number): Promise<Player> {
 	const getPlayerUrl = `${origin}api/players/${playerId}`;
 	const response = await fetch(getPlayerUrl, { method: 'GET' });
