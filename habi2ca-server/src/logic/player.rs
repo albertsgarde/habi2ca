@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use habi2ca_database::{
-    level,
+    habit, level,
     player::{self, ActiveModel, PlayerId},
     task,
 };
@@ -10,7 +10,7 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::{level::Level, task::Task};
+use super::{habit::Habit, level::Level, task::Task};
 
 #[cfg(test)]
 use habi2ca_database::level::LevelId;
@@ -148,5 +148,16 @@ impl Player {
             .with_context(|| format!("Failed to get tasks for player '{id}'"))?;
 
         Ok(models.into_iter().map(|model| Task { model }).collect())
+    }
+
+    pub async fn get_habits(&self, db: &DatabaseConnection) -> Result<Vec<Habit>> {
+        let id = self.model.id;
+        let models = habit::Entity::find()
+            .filter(habit::Column::PlayerId.eq(id))
+            .all(db)
+            .await
+            .with_context(|| format!("Failed to get habits for player '{id}'"))?;
+
+        Ok(models.into_iter().map(|model| Habit { model }).collect())
     }
 }

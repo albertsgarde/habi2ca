@@ -90,14 +90,11 @@ pub fn add_routes(scope: Scope) -> Scope {
 #[cfg(test)]
 mod tests {
     use actix_web::test::{self as actix_test, TestRequest};
-    use habi2ca_database::{
-        level::{self, LevelId},
-        player, task,
-    };
-    use sea_orm::{ActiveValue, DatabaseConnection, EntityTrait};
+    use habi2ca_database::{level::LevelId, player, task};
+    use sea_orm::DatabaseConnection;
 
     use crate::{
-        logic::{player::Player, task::Task},
+        logic::{level::Level, player::Player, task::Task},
         routes::tasks::TaskData,
         start::create_app,
         test_utils,
@@ -137,31 +134,29 @@ mod tests {
     async fn get_tasks() {
         let (database, player) = setup_database().await;
 
-        let task1 = task::ActiveModel {
-            player_id: ActiveValue::Set(player.id()),
-            name: ActiveValue::Set("Task1".to_string()),
-            description: ActiveValue::Set("Description1".to_string()),
-            completed: ActiveValue::Set(false),
-            ..Default::default()
-        };
+        let task1 = Task::create(
+            &database,
+            TaskData {
+                player: player.id(),
+                name: "Task1".to_string(),
+                description: "Description1".to_string(),
+                completed: false,
+            },
+        )
+        .await
+        .unwrap();
 
-        let task1 = task::Entity::insert(task1)
-            .exec_with_returning(&database)
-            .await
-            .unwrap();
-
-        let task2 = task::ActiveModel {
-            player_id: ActiveValue::Set(player.id()),
-            name: ActiveValue::Set("Task2".to_string()),
-            description: ActiveValue::Set("Description2".to_string()),
-            completed: ActiveValue::Set(true),
-            ..Default::default()
-        };
-
-        let task2 = task::Entity::insert(task2)
-            .exec_with_returning(&database)
-            .await
-            .unwrap();
+        let task2 = Task::create(
+            &database,
+            TaskData {
+                player: player.id(),
+                name: "Task2".to_string(),
+                description: "Description2".to_string(),
+                completed: true,
+            },
+        )
+        .await
+        .unwrap();
 
         let app = actix_test::init_service(create_app(database)).await;
 
@@ -170,13 +165,14 @@ mod tests {
                 .await;
 
         assert_eq!(tasks.len(), 2);
-        assert_eq!(tasks[0].id, task1.id);
+
+        assert_eq!(tasks[0].id, task1.id());
         assert_eq!(tasks[0].player_id, player.id());
         assert_eq!(tasks[0].name, "Task1");
         assert_eq!(tasks[0].description, "Description1");
         assert_eq!(tasks[0].completed, false);
 
-        assert_eq!(tasks[1].id, task2.id);
+        assert_eq!(tasks[1].id, task2.id());
         assert_eq!(tasks[1].player_id, player.id());
         assert_eq!(tasks[1].name, "Task2");
         assert_eq!(tasks[1].description, "Description2");
@@ -264,12 +260,10 @@ mod tests {
     async fn complete_task() {
         let (database, mut player) = setup_database().await;
 
-        let level_1_xp = level::Entity::find_by_id(LevelId(1))
-            .one(&database)
+        let level_1_xp = Level::from_id(&database, LevelId(1))
             .await
             .unwrap()
-            .unwrap()
-            .xp_requirement;
+            .xp_requirement();
 
         player.add_xp(&database, level_1_xp - 0.5).await.unwrap();
 

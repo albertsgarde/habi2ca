@@ -1,4 +1,5 @@
 mod admin;
+mod habits;
 mod levels;
 mod players;
 mod tasks;
