@@ -1,3 +1,91 @@
+use actix_web::{
+    get, patch, post,
+    web::{self, Json},
+    HttpRequest, Responder, Scope,
+};
+use anyhow::Context;
+
+use crate::{
+    logic::habit::{Habit, HabitData},
+    routes::RouteError,
+    state::State,
+};
+
+#[post("")]
+pub async fn create_habit(
+    state: web::Data<State>,
+    habit: Json<HabitData>,
+) -> Result<impl Responder, RouteError> {
+    let habit = Habit::create(state.database(), habit.into_inner())
+        .await
+        .context("Failed to create habit.")?;
+    Ok(web::Json(habit))
+}
+
+#[get("")]
+pub async fn get_habits(
+    state: web::Data<State>,
+    query: web::Query<std::collections::HashMap<String, String>>,
+) -> Result<impl Responder, RouteError> {
+    let player_id = query
+        .get("player")
+        .map(|s| {
+            s.parse()
+                .with_context(|| format!("Failed to parse player id '{s}'."))
+                .map(habi2ca_database::player::PlayerId)
+        })
+        .transpose()?;
+
+    let result = if let Some(player_id) = player_id {
+        Habit::player_habits(state.database(), player_id).await?
+    } else {
+        Habit::all_habits(state.database()).await?
+    };
+    Ok(web::Json(result))
+}
+
+#[get("/{id}")]
+pub async fn get_habit(
+    state: web::Data<State>,
+    request: HttpRequest,
+) -> Result<impl Responder, RouteError> {
+    let habit_id = request
+        .match_info()
+        .load()
+        .context("Missing 'id' parameter")?;
+    let habit = Habit::from_id(state.database(), habit_id)
+        .await
+        .with_context(|| format!("Failed to get habit with id {habit_id}."))?;
+    Ok(web::Json(habit))
+}
+
+#[patch("/{id}/increment")]
+pub async fn increment_habit(
+    state: web::Data<State>,
+    request: HttpRequest,
+) -> Result<impl Responder, RouteError> {
+    let habit_id = request
+        .match_info()
+        .load()
+        .context("Missing 'id' parameter")?;
+    let mut habit = Habit::from_id(state.database(), habit_id)
+        .await
+        .with_context(|| format!("Failed to get habit with id {habit_id}."))?;
+    habit
+        .increment(state.database())
+        .await
+        .with_context(|| format!("Failed to increment habit with id {habit_id}."))?;
+    Ok(web::Json(habit))
+}
+
+pub fn add_routes(scope: Scope) -> Scope {
+    scope
+        .service(create_habit)
+        .service(get_habits)
+        .service(get_habit)
+        .service(increment_habit)
+}
+
 #[cfg(test)]
 mod test {
     use actix_web::test::{self as actix_test, TestRequest};

@@ -7,7 +7,8 @@ use habi2ca_database::{
     task::{self, ActiveModel, Model, TaskId},
 };
 use sea_orm::{
-    ConnectionTrait, DatabaseConnection, EntityTrait, IntoActiveModel, TransactionTrait,
+    ColumnTrait, ConnectionTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter,
+    TransactionTrait,
 };
 use serde::{Deserialize, Serialize};
 
@@ -90,6 +91,16 @@ impl Task {
             .await
             .context("Failed to get all tasks from database.")?;
         Ok(models.into_iter().map(|model| Self { model }).collect())
+    }
+
+    pub async fn player_tasks(db: &DatabaseConnection, player_id: PlayerId) -> Result<Vec<Task>> {
+        let models = task::Entity::find()
+            .filter(task::Column::PlayerId.eq(player_id))
+            .all(db)
+            .await
+            .with_context(|| format!("Failed to get tasks for player '{player_id}'"))?;
+
+        Ok(models.into_iter().map(|model| Task { model }).collect())
     }
 
     pub async fn complete_task(&mut self, db: &DatabaseConnection) -> Result<()> {

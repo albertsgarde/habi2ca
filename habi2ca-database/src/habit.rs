@@ -8,7 +8,7 @@ use crate::{implement_id, player::PlayerId};
 implement_id!(HabitId);
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "task")]
+#[sea_orm(table_name = "habit")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: HabitId,

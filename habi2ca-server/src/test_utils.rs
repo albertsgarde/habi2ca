@@ -25,9 +25,10 @@ where
 {
     let response = actix_test::call_service(app, req).await;
     if !response.status().is_success() {
+        let status_code = response.status();
         let body = actix_test::read_body(response).await;
 
-        panic!("{}", std::str::from_utf8(&body).unwrap());
+        panic!("{}: {}", status_code, std::str::from_utf8(&body).unwrap());
     } else {
         actix_test::read_body_json(response).await
     }

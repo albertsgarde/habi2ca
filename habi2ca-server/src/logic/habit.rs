@@ -5,7 +5,9 @@ use habi2ca_database::{
     habit::{self, ActiveModel, HabitId, Model},
     player::PlayerId,
 };
-use sea_orm::{ConnectionTrait, DatabaseConnection, EntityTrait, TransactionTrait};
+use sea_orm::{
+    ColumnTrait, ConnectionTrait, DatabaseConnection, EntityTrait, QueryFilter, TransactionTrait,
+};
 use serde::{Deserialize, Serialize};
 
 use super::player::Player;
@@ -52,8 +54,8 @@ pub struct Habit {
 }
 
 impl Habit {
-    pub async fn create(db: &impl ConnectionTrait, task_data: HabitData) -> Result<Self> {
-        let model = habit::Entity::insert(task_data.into_active_model())
+    pub async fn create(db: &impl ConnectionTrait, habit_data: HabitData) -> Result<Self> {
+        let model = habit::Entity::insert(habit_data.into_active_model())
             .exec_with_returning(db)
             .await?;
         Ok(Self { model })
@@ -66,6 +68,21 @@ impl Habit {
             .with_context(|| format!("Failed to get habit with id {id} from database."))?
             .with_context(|| format!("No habit with id {id} exists."))?;
         Ok(Self { model })
+    }
+
+    pub async fn all_habits(db: &DatabaseConnection) -> Result<Vec<Habit>> {
+        let models = habit::Entity::find().all(db).await?;
+        Ok(models.into_iter().map(|model| Habit { model }).collect())
+    }
+
+    pub async fn player_habits(db: &DatabaseConnection, player_id: PlayerId) -> Result<Vec<Habit>> {
+        let models = habit::Entity::find()
+            .filter(habit::Column::PlayerId.eq(player_id))
+            .all(db)
+            .await
+            .with_context(|| format!("Failed to get habits for player '{player_id}'"))?;
+
+        Ok(models.into_iter().map(|model| Habit { model }).collect())
     }
 
     pub async fn increment(&mut self, db: &DatabaseConnection) -> Result<()> {
@@ -92,18 +109,22 @@ impl Habit {
         Ok(())
     }
 
+    #[cfg(test)]
     pub fn id(&self) -> HabitId {
         self.model.id
     }
 
+    #[cfg(test)]
     pub fn player(&self) -> PlayerId {
         self.model.player_id
     }
 
+    #[cfg(test)]
     pub fn name(&self) -> &str {
         &self.model.name
     }
 
+    #[cfg(test)]
     pub fn description(&self) -> &str {
         &self.model.description
     }

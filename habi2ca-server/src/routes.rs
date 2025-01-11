@@ -26,5 +26,6 @@ pub fn add_routes(scope: Scope) -> Scope {
         .service(admin::add_routes(web::scope("/admin")))
         .service(players::add_routes(web::scope("/players")))
         .service(tasks::add_routes(web::scope("/tasks")))
+        .service(habits::add_routes(web::scope("/habits")))
         .service(levels::add_routes(web::scope("/levels")))
 }

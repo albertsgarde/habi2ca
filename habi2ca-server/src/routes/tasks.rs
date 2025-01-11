@@ -9,10 +9,7 @@ use anyhow::Context;
 use habi2ca_database::{player::PlayerId, task::TaskId};
 
 use crate::{
-    logic::{
-        player::Player,
-        task::{Task, TaskData},
-    },
+    logic::task::{Task, TaskData},
     routes::RouteError,
     state::State,
 };
@@ -41,8 +38,7 @@ pub async fn get_tasks(
         .transpose()?;
 
     let result = if let Some(player_id) = player_id {
-        let player = Player::from_id(state.database(), player_id).await?;
-        player.get_tasks(state.database()).await?
+        Task::player_tasks(state.database(), player_id).await?
     } else {
         Task::all_tasks(state.database()).await?
     };
