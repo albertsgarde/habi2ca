@@ -29,7 +29,7 @@ export async function createTask(origin: URL, taskData: TaskData): Promise<Task>
 	const createTaskUrl = `${origin}api/tasks`;
 	const response = await fetch(createTaskUrl, {
 		method: 'POST',
-		body: JSON.stringify(taskData),
+		body: JSON.stringify({ name: taskData.name, description: taskData.description }),
 		headers: { 'Content-Type': 'application/json' }
 	});
 	if (response.ok) {

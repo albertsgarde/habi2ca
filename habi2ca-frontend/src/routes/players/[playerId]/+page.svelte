@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { expect, origin } from '$lib/base';
 	import { getHabits, incrementHabit, type Habit } from '$lib/habit';
-	import { addXp, type Player } from '$lib/player';
+	import { type Player } from '$lib/player';
 	import { completeTask, getTasks, type Task } from '$lib/task';
 	import Title from '$lib/Title.svelte';
 	import HabitCreationDialog from './HabitCreationDialog.svelte';

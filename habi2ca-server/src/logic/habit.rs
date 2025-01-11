@@ -14,7 +14,7 @@ use super::player::Player;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct HabitData {
-    pub player: PlayerId,
+    pub player_id: PlayerId,
     pub name: String,
     pub description: String,
 }
@@ -22,7 +22,7 @@ pub struct HabitData {
 impl HabitData {
     pub fn into_active_model(self) -> ActiveModel {
         ActiveModel {
-            player_id: sea_orm::ActiveValue::Set(self.player),
+            player_id: sea_orm::ActiveValue::Set(self.player_id),
             name: sea_orm::ActiveValue::Set(self.name),
             description: sea_orm::ActiveValue::Set(self.description),
             ..Default::default()
