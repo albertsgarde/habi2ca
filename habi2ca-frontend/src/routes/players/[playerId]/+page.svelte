@@ -38,13 +38,6 @@
 <p>Name: {player.name}</p>
 <p>Level: {player.level}</p>
 <p>XP: {player.xp}/{player.xp_requirement}</p>
-<button
-	on:click={async () =>
-		(player = await addXp(
-			expect($origin, 'apiOrigin should exist once page is loaded.'),
-			player.id
-		))}>Add XP</button
->
 <h2>Habits</h2>
 {#each habits as { id, name, description }}
 	<div class="habit-card">
