@@ -31,7 +31,7 @@
 				playerName
 			);
 			playerName = '';
-			update({ player, numTasks: 0 });
+			update({ player, numTasks: 0, numHabits: 0 });
 		}}
 	>
 		<input name="playerName" type="text" bind:value={playerName} placeholder="Name..." />

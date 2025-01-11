@@ -21,7 +21,7 @@ export async function getTasks(origin: URL, playerId: number): Promise<Task[]> {
 	if (response.ok) {
 		return await response.json();
 	} else {
-		throw new Error(`Failed to fetch tasks: ${await response.text()}`);
+		throw new Error(`Failed to fetch tasks. ${response.status}: ${await response.text()}`);
 	}
 }
 
@@ -35,7 +35,7 @@ export async function createTask(origin: URL, taskData: TaskData): Promise<Task>
 	if (response.ok) {
 		return await response.json();
 	} else {
-		throw new Error(`Failed to create task: ${await response.text()}`);
+		throw new Error(`Failed to create task. ${response.status}: ${await response.text()}`);
 	}
 }
 
@@ -43,7 +43,9 @@ export async function completeTask(origin: URL, taskId: number): Promise<[Task, 
 	const completeTaskUrl = `${origin}api/tasks/${taskId}/complete`;
 	const taskResponse = await fetch(completeTaskUrl, { method: 'PATCH' });
 	if (!taskResponse.ok) {
-		throw new Error(`Failed to complete task: ${await taskResponse.text()}`);
+		throw new Error(
+			`Failed to complete task. ${taskResponse.status}: ${await taskResponse.text()}`
+		);
 	}
 	const task: Task = await taskResponse.json();
 
@@ -52,6 +54,8 @@ export async function completeTask(origin: URL, taskId: number): Promise<[Task, 
 		const player = await playerResponse.json();
 		return [task, player];
 	} else {
-		throw new Error(`Failed to fetch player: ${await playerResponse.text()}`);
+		throw new Error(
+			`Failed to fetch player. ${taskResponse.status}: ${await playerResponse.text()}`
+		);
 	}
 }

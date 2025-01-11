@@ -28,7 +28,7 @@
 			}
 			dialog.close();
 			await createTask(expect($origin, 'apiOrigin should exist once page is loaded.'), {
-				player: playerId,
+				player_id: playerId,
 				name: taskName,
 				description: taskDescription,
 				completed: false

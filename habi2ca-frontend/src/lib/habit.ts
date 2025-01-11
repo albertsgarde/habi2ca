@@ -35,7 +35,7 @@ export async function createHabit(origin: URL, habitData: HabitData): Promise<Ha
 		return await response.json();
 	} else {
 		const statusCode = response.status;
-		throw new Error(`Failed to create habit: ${await response.text()}`);
+		throw new Error(`Failed to create habit. ${statusCode}: ${await response.text()}`);
 	}
 }
 
@@ -43,7 +43,9 @@ export async function incrementHabit(origin: URL, habitId: number): Promise<[Hab
 	const completeHabitUrl = `${origin}api/habits/${habitId}/increment`;
 	const habitResponse = await fetch(completeHabitUrl, { method: 'PATCH' });
 	if (!habitResponse.ok) {
-		throw new Error(`Failed to increment habit. ${habitResponse.status}: ${await habitResponse.text()}`);
+		throw new Error(
+			`Failed to increment habit. ${habitResponse.status}: ${await habitResponse.text()}`
+		);
 	}
 	const habit: Habit = await habitResponse.json();
 

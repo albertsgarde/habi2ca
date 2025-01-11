@@ -8,7 +8,7 @@ export async function load({
 	params
 }: {
 	params: { playerId: string };
-}): Promise<{ player: Player; tasks: Task[], habits: Habit[] }> {
+}): Promise<{ player: Player; tasks: Task[]; habits: Habit[] }> {
 	const playerIdStr = params.playerId;
 
 	const playerId = parseInt(playerIdStr);
