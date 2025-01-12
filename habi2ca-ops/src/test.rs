@@ -31,7 +31,7 @@ impl Test {
             .filter(|path| path.extension().is_some_and(|ext| ext == "rs"))
             .collect();
 
-        let skip_backend = !paths.is_empty() && frontend_paths.is_empty();
+        let skip_frontend = !paths.is_empty() && frontend_paths.is_empty();
 
         let mut command = Command::new(env!("CARGO"));
         if self.fix {
@@ -74,19 +74,65 @@ impl Test {
         }
 
         let mut command = Command::new(env!("CARGO"));
+        command.args(["install", "--list"]);
+        let output = command
+            .current_dir(workspace_dir)
+            .output()
+            .context("Failed to get installed binary list from cargo.")?;
+        if !output.status.success() {
+            bail!("Failed to get installed binary list from cargo.");
+        }
+        let installed_binaries_string = String::from_utf8(output.stdout)
+            .context("Failed to parse installed binary list from cargo.")?;
+        if !installed_binaries_string.contains("cargo-nextest") {
+            println!("cargo-nextest not installed. Installing...");
+            let mut command = Command::new(env!("CARGO"));
+            command.args(["install", "cargo-nextest"]);
+            let status = command
+                .current_dir(workspace_dir)
+                .spawn()
+                .context("Failed to install cargo-nextest.")?
+                .wait()?;
+            if !status.success() {
+                bail!("Failed to install cargo-nextest.");
+            }
+        }
+
+        let mut command = Command::new(env!("CARGO"));
         command.args(["nextest", "run"]).current_dir(workspace_dir);
         let status = command.spawn().context("Failed to run tests.")?.wait()?;
         if !status.success() {
             bail!("Some tests failed.");
         }
 
-        // "check-all": "npm run check && npm run lint && npm run format && npm run test"
+        if !skip_frontend {
+            let frontend_dir = workspace_dir.join("habi2ca-frontend");
+            let frontend_dir = frontend_dir.as_path();
 
-        if !skip_backend {
+            let mut command = Command::new("npm");
+            let status = command
+                .args(["ci"])
+                .current_dir(frontend_dir)
+                .spawn()?
+                .wait()?;
+            if !status.success() {
+                bail!("Failed to install frontend dependencies.");
+            }
+
+            let mut command = Command::new("npx");
+            let status = command
+                .args(["playwright", "install", "--with-deps"])
+                .current_dir(frontend_dir)
+                .spawn()?
+                .wait()?;
+            if !status.success() {
+                bail!("Failed to run playwright install.");
+            }
+
             let mut command = Command::new("npm");
             let status = command
                 .args(["run", "check"])
-                .current_dir(workspace_dir.join("habi2ca-frontend"))
+                .current_dir(frontend_dir)
                 .spawn()?
                 .wait()?;
             if !status.success() {
@@ -96,7 +142,7 @@ impl Test {
             let mut command = Command::new("npm");
             let status = command
                 .args(["run", "lint"])
-                .current_dir(workspace_dir.join("habi2ca-frontend"))
+                .current_dir(frontend_dir)
                 .spawn()?
                 .wait()?;
             if !status.success() {
@@ -114,10 +160,7 @@ impl Test {
             } else {
                 command.args(frontend_paths.as_slice());
             }
-            let status = command
-                .current_dir(workspace_dir.join("habi2ca-frontend"))
-                .spawn()?
-                .wait()?;
+            let status = command.current_dir(frontend_dir).spawn()?.wait()?;
             if !status.success() {
                 bail!("Frontend formatting incorrect.");
             }
@@ -126,7 +169,7 @@ impl Test {
                 let mut command = Command::new("npm");
                 let status = command
                     .args(["run", "test"])
-                    .current_dir(workspace_dir.join("habi2ca-frontend"))
+                    .current_dir(frontend_dir)
                     .spawn()?
                     .wait()?;
                 if !status.success() {
