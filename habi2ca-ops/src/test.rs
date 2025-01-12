@@ -28,7 +28,7 @@ impl Test {
 
         let rust_paths: Vec<_> = paths
             .iter()
-            .filter(|path| path.extension().map_or(false, |ext| ext == "rs"))
+            .filter(|path| path.extension().is_some_and(|ext| ext == "rs"))
             .collect();
 
         let skip_backend = !paths.is_empty() && frontend_paths.is_empty();
