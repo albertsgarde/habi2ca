@@ -2,6 +2,7 @@ use std::{fs, path::PathBuf};
 
 use ::tracing::info;
 use actix_web::{
+    body::MessageBody,
     dev::{ServiceFactory, ServiceRequest},
     middleware::{self, TrailingSlash},
     web, App, HttpServer,
@@ -18,7 +19,7 @@ pub fn create_app_with_database_path(
     impl ServiceFactory<
         ServiceRequest,
         Config = (),
-        Response = actix_web::dev::ServiceResponse,
+        Response = actix_web::dev::ServiceResponse<impl MessageBody>,
         Error = actix_web::Error,
         InitError = (),
     >,
@@ -36,7 +37,7 @@ pub fn create_app(
     impl ServiceFactory<
         ServiceRequest,
         Config = (),
-        Response = actix_web::dev::ServiceResponse,
+        Response = actix_web::dev::ServiceResponse<impl MessageBody>,
         Error = actix_web::Error,
         InitError = (),
     >,

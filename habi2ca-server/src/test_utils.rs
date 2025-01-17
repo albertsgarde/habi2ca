@@ -1,6 +1,6 @@
 use actix_http::Request;
 use actix_service::Service;
-use actix_web::test as actix_test;
+use actix_web::{body::MessageBody, test as actix_test};
 use habi2ca_database::migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 use serde::de::DeserializeOwned;
@@ -17,9 +17,10 @@ pub async fn setup_database() -> DatabaseConnection {
     database
 }
 
-pub async fn assert_ok_response<S, E, R>(app: &S, req: Request) -> R
+pub async fn assert_ok_response<M, S, E, R>(app: &S, req: Request) -> R
 where
-    S: Service<Request, Response = actix_web::dev::ServiceResponse, Error = E>,
+    M: MessageBody,
+    S: Service<Request, Response = actix_web::dev::ServiceResponse<M>, Error = E>,
     E: std::fmt::Debug,
     R: DeserializeOwned,
 {
