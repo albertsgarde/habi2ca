@@ -12,6 +12,8 @@ pub struct Test {
     fix: bool,
     #[arg(short, long, default_value = "false")]
     quick: bool,
+    #[arg(long, default_value = "false")]
+    ci: bool,
     /// Input paths
     paths: Vec<String>,
 }
@@ -120,11 +122,11 @@ impl Test {
             }
 
             let mut command = Command::new("npx");
-            let status = command
-                .args(["playwright", "install", "--with-deps"])
-                .current_dir(frontend_dir)
-                .spawn()?
-                .wait()?;
+            command.args(["playwright", "install"]);
+            if self.ci {
+                command.arg("--with-deps");
+            }
+            command.current_dir(frontend_dir).spawn()?.wait()?;
             if !status.success() {
                 bail!("Failed to run playwright install.");
             }

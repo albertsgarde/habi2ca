@@ -2,12 +2,14 @@ use std::{fs, path::PathBuf};
 
 use ::tracing::info;
 use actix_web::{
+    body::MessageBody,
     dev::{ServiceFactory, ServiceRequest},
     middleware::{self, TrailingSlash},
     web, App, HttpServer,
 };
 use anyhow::{bail, Result};
 use sea_orm::DatabaseConnection;
+use tracing_actix_web::TracingLogger;
 
 use crate::{cli::ServerConfig, database_utils, routes, state::State, tracing, Never};
 
@@ -18,7 +20,7 @@ pub fn create_app_with_database_path(
     impl ServiceFactory<
         ServiceRequest,
         Config = (),
-        Response = actix_web::dev::ServiceResponse,
+        Response = actix_web::dev::ServiceResponse<impl MessageBody>,
         Error = actix_web::Error,
         InitError = (),
     >,
@@ -26,6 +28,7 @@ pub fn create_app_with_database_path(
     App::new()
         .app_data(web::Data::new(State::new(database, database_path)))
         .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
+        .wrap(TracingLogger::default())
         .service(routes::add_routes(web::scope("/api")))
 }
 
@@ -36,7 +39,7 @@ pub fn create_app(
     impl ServiceFactory<
         ServiceRequest,
         Config = (),
-        Response = actix_web::dev::ServiceResponse,
+        Response = actix_web::dev::ServiceResponse<impl MessageBody>,
         Error = actix_web::Error,
         InitError = (),
     >,
