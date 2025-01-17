@@ -1,0 +1,28 @@
+---
+name: CI
+on:       # yamllint disable-line rule:truthy
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    ci:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v4
+            
+            - name: Install rust
+              uses: actions-rust-lang/setup-rust-toolchain@v1
+              with: 
+                toolchain: 1.84.0
+                components: rustfmt, clippy
+            
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                node-version: '18'
+            
+            - name: Test
+              run: cargo t
+    
