@@ -39,6 +39,6 @@
 	>
 		<input name="habitName" type="text" bind:value={habitName} placeholder="Name..." />
 		<textarea name="habitDescription" bind:value={habitDescription} placeholder="Description..." />
-		<button>Create</button>
+		<button class="btn btn-blue">Create</button>
 	</form>
 </Modal>

@@ -15,6 +15,7 @@
 <Title />
 
 <button
+	class="btn btn-blue"
 	on:click={() => {
 		showCreatePlayerDialog = true;
 	}}>Create Player</button
@@ -24,7 +25,7 @@
 	<div>
 		<h2>
 			{player.name}
-			<button on:click={() => goto(`/players/${player.id}`)}>Play!</button>
+			<button class="btn btn-blue" on:click={() => goto(`/players/${player.id}`)}>Play!</button>
 		</h2>
 		<p>Level: {player.level}</p>
 		<p>XP: {player.xp}/{player.xp_requirement}</p>

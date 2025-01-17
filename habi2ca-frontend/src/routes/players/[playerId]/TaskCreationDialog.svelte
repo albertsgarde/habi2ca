@@ -40,6 +40,6 @@
 	>
 		<input name="taskName" type="text" bind:value={taskName} placeholder="Name..." />
 		<textarea name="taskDescription" bind:value={taskDescription} placeholder="Description..." />
-		<button>Create</button>
+		<button class="btn btn-blue">Create</button>
 	</form>
 </Modal>

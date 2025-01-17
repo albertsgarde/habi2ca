@@ -22,6 +22,7 @@
 <Title />
 
 <button
+	class="btn btn-blue"
 	on:click={async () => {
 		showCreateHabitDialog = true;
 	}}
@@ -29,6 +30,7 @@
 	Create Habit
 </button>
 <button
+	class="btn btn-blue"
 	on:click={async () => {
 		showCreateTaskDialog = true;
 	}}
@@ -44,6 +46,7 @@
 		<h3>{name}</h3>
 		<p>{description}</p>
 		<button
+			class="btn btn-blue"
 			on:click={async () => {
 				let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
 				let [_, updatedPlayer] = await incrementHabit(originUrl, id);
@@ -59,6 +62,7 @@
 			<h3>{name}</h3>
 			<p>{description}</p>
 			<button
+				class="btn btn-blue"
 				on:click={async () => {
 					let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
 					let [_, updatedPlayer] = await completeTask(originUrl, id);

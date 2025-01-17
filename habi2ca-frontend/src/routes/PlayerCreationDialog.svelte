@@ -35,6 +35,6 @@
 		}}
 	>
 		<input name="playerName" type="text" bind:value={playerName} placeholder="Name..." />
-		<button>Create</button>
+		<button class="btn btn-blue">Create</button>
 	</form>
 </Modal>
