@@ -9,6 +9,7 @@ use actix_web::{
 };
 use anyhow::{bail, Result};
 use sea_orm::DatabaseConnection;
+use tracing_actix_web::TracingLogger;
 
 use crate::{cli::ServerConfig, database_utils, routes, state::State, tracing, Never};
 
@@ -27,6 +28,7 @@ pub fn create_app_with_database_path(
     App::new()
         .app_data(web::Data::new(State::new(database, database_path)))
         .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
+        .wrap(TracingLogger::default())
         .service(routes::add_routes(web::scope("/api")))
 }
 
