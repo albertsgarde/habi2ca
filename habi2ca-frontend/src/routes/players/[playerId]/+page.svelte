@@ -19,8 +19,6 @@
 	let createHabitDialog: HabitCreationDialog;
 </script>
 
-<Title />
-
 <button
 	class="btn btn-blue"
 	on:click={async () => {

@@ -1,9 +1,49 @@
 @tailwind base;
+
+@layer base {
+
+    /* Typography */
+    h1 {
+        @apply text-4xl font-bold mb-4;
+    }
+
+    h2 {
+        @apply text-3xl font-bold mb-3;
+    }
+
+    h3 {
+        @apply text-2xl font-bold mb-2;
+    }
+
+    h4 {
+        @apply text-xl font-bold mb-2;
+    }
+
+    p {
+        @apply mb-4;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+        @apply px-3 py-2 border border-gray-300 rounded;
+    }
+
+    /* Lists */
+    ul {
+        @apply list-disc pl-5 mb-4;
+    }
+
+    ol {
+        @apply list-decimal pl-5 mb-4;
+    }
+}
+
 @tailwind components;
 @tailwind utilities;
 
 .btn {
-    @apply font-bold py-2 px-4 rounded;
+    @apply font-bold py-2 px-4 rounded mt-2;
 }
 
 .btn-blue {
