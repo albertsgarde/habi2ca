@@ -3,7 +3,6 @@
 	import { getHabits, incrementHabit, type Habit } from '$lib/habit';
 	import { type Player } from '$lib/player';
 	import { completeTask, getTasks, type Task } from '$lib/task';
-	import Title from '$lib/Title.svelte';
 	import HabitCreationDialog from './HabitCreationDialog.svelte';
 	import TaskCreationDialog from './TaskCreationDialog.svelte';
 
