@@ -12,7 +12,8 @@
 </script>
 
 <button
-	class="btn btn-blue"
+	type="button"
+	class="btn variant-filled-surface"
 	on:click={() => {
 		showCreatePlayerDialog = true;
 	}}>Create Player</button
@@ -20,10 +21,14 @@
 
 {#each playerInfos as { player, numTasks, numHabits }}
 	<div>
-		<h2>
+		<h2 class="h2">
 			{player.name}
+			<button
+				type="button"
+				class="btn variant-filled-surface"
+				on:click={() => goto(`/players/${player.id}`)}>Play!</button
+			>
 		</h2>
-		<button class="btn btn-blue" on:click={() => goto(`/players/${player.id}`)}>Play!</button>
 		<p>Level: {player.level}</p>
 		<p>XP: {player.xp}/{player.xp_requirement}</p>
 		<p>Number of habits: {numHabits}</p>

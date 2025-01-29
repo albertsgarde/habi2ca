@@ -19,7 +19,7 @@
 </script>
 
 <button
-	class="btn btn-blue"
+	class="btn variant-filled-surface"
 	on:click={async () => {
 		showCreateHabitDialog = true;
 	}}
@@ -27,7 +27,7 @@
 	Create Habit
 </button>
 <button
-	class="btn btn-blue"
+	class="btn variant-filled-surface"
 	on:click={async () => {
 		showCreateTaskDialog = true;
 	}}
@@ -40,16 +40,20 @@
 <h2>Habits</h2>
 {#each habits as { id, name, description }}
 	<div class="habit-card">
-		<h3>{name}</h3>
-		<p>{description}</p>
-		<button
-			class="btn btn-blue"
-			on:click={async () => {
-				let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
-				let [_, updatedPlayer] = await incrementHabit(originUrl, id);
-				player = updatedPlayer;
-			}}>Increment</button
-		>
+		<h3>
+			<button
+				class="btn variant-filled-surface"
+				on:click={async () => {
+					let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
+					let [_, updatedPlayer] = await incrementHabit(originUrl, id);
+					player = updatedPlayer;
+				}}>+</button
+			>
+			{name}
+		</h3>
+		<p>
+			{description}
+		</p>
 	</div>
 {/each}
 <h2>Tasks</h2>
@@ -59,7 +63,7 @@
 			<h3>{name}</h3>
 			<p>{description}</p>
 			<button
-				class="btn btn-blue"
+				class="btn variant-filled-surface"
 				on:click={async () => {
 					let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
 					let [_, updatedPlayer] = await completeTask(originUrl, id);
