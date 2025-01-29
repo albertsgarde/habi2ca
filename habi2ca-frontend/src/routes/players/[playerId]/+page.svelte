@@ -3,7 +3,6 @@
 	import { getHabits, incrementHabit, type Habit } from '$lib/habit';
 	import { type Player } from '$lib/player';
 	import { completeTask, getTasks, type Task } from '$lib/task';
-	import Title from '$lib/Title.svelte';
 	import HabitCreationDialog from './HabitCreationDialog.svelte';
 	import TaskCreationDialog from './TaskCreationDialog.svelte';
 
@@ -19,9 +18,8 @@
 	let createHabitDialog: HabitCreationDialog;
 </script>
 
-<Title />
-
 <button
+	class="btn variant-filled-surface"
 	on:click={async () => {
 		showCreateHabitDialog = true;
 	}}
@@ -29,6 +27,7 @@
 	Create Habit
 </button>
 <button
+	class="btn variant-filled-surface"
 	on:click={async () => {
 		showCreateTaskDialog = true;
 	}}
@@ -41,15 +40,20 @@
 <h2>Habits</h2>
 {#each habits as { id, name, description }}
 	<div class="habit-card">
-		<h3>{name}</h3>
-		<p>{description}</p>
-		<button
-			on:click={async () => {
-				let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
-				let [_, updatedPlayer] = await incrementHabit(originUrl, id);
-				player = updatedPlayer;
-			}}>Increment</button
-		>
+		<h3>
+			<button
+				class="btn variant-filled-surface"
+				on:click={async () => {
+					let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
+					let [_, updatedPlayer] = await incrementHabit(originUrl, id);
+					player = updatedPlayer;
+				}}>+</button
+			>
+			{name}
+		</h3>
+		<p>
+			{description}
+		</p>
 	</div>
 {/each}
 <h2>Tasks</h2>
@@ -59,6 +63,7 @@
 			<h3>{name}</h3>
 			<p>{description}</p>
 			<button
+				class="btn variant-filled-surface"
 				on:click={async () => {
 					let originUrl = expect($origin, 'apiOrigin should exist once page is loaded.');
 					let [_, updatedPlayer] = await completeTask(originUrl, id);

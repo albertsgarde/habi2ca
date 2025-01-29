@@ -2,3 +2,5 @@
 /local
 
 gha-creds-*.json
+
+.vscode-local/settings.json

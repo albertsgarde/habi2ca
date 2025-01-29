@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import Title from '$lib/Title.svelte';
 	import PlayerCreationDialog from './PlayerCreationDialog.svelte';
 	import type { PlayerInfo } from './playerInfo';
 
@@ -12,9 +11,9 @@
 	let createPlayerDialog: PlayerCreationDialog;
 </script>
 
-<Title />
-
 <button
+	type="button"
+	class="btn variant-filled-surface"
 	on:click={() => {
 		showCreatePlayerDialog = true;
 	}}>Create Player</button
@@ -22,9 +21,13 @@
 
 {#each playerInfos as { player, numTasks, numHabits }}
 	<div>
-		<h2>
+		<h2 class="h2">
 			{player.name}
-			<button on:click={() => goto(`/players/${player.id}`)}>Play!</button>
+			<button
+				type="button"
+				class="btn variant-filled-surface"
+				on:click={() => goto(`/players/${player.id}`)}>Play!</button
+			>
 		</h2>
 		<p>Level: {player.level}</p>
 		<p>XP: {player.xp}/{player.xp_requirement}</p>
